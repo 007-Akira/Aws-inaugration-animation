@@ -29,6 +29,10 @@ const status = select('#status-message');
 const state = createState();
 const loader = new AssetLoader(assetManifest);
 let debug;
+let clickSound;
+function stopClickSound() {
+  if (clickSound) { clickSound.pause(); clickSound.currentTime = 0; }
+}
 const report = (error) => { console.warn(error); debug?.report(error); };
 const video = new VideoManager(select('#cinematic-video'), report);
 const effects = createEffects(select('#effects-canvas'), viewport, report);
@@ -57,12 +61,17 @@ elements.stage.dataset.state = state.current;
 function start() {
   if (state.current !== 'ready') return;
   state.set('playing');
+  if (clickSound) {
+    clickSound.currentTime = 0;
+    void clickSound.play().catch(error => { if (error.name !== 'AbortError') report(error); });
+  }
   startButton.blur();
   status.textContent = '';
   master.play();
 }
 let inspecting = false;
 function reset() {
+  stopClickSound();
   inspecting = false;
   finalReveal.stop();
   master.reset();
@@ -96,6 +105,8 @@ debug = createDebug({ panel: select('#debug'), state, timeline: master.timeline,
 const unbind = bindControls({ root, viewport, presentation, start, debugStart, inspect, inspectActTwo, tune, previewFinal, reset, debug: select('#debug'), startButton, report });
 async function initializeAssets() {
   const [result, graphicsReady] = await Promise.all([loader.load(), universe.prepare()]);
+  clickSound = loader.get('inaugurationClick');
+  if (clickSound) { clickSound.volume = 0.55; clickSound.loop = false; }
   video.attach(loader.get('intro'));
   let finalReady = false;
   if (result.ready && graphicsReady) {
@@ -115,5 +126,5 @@ async function initializeAssets() {
 void initializeAssets();
 
 if (import.meta.hot) import.meta.hot.dispose(() => {
-  unbind(); master.dispose(); video.reset(); finalReveal.dispose(); universe.dispose(); effects.dispose(); viewport.dispose(); debug.dispose();
+  stopClickSound(); unbind(); master.dispose(); video.reset(); finalReveal.dispose(); universe.dispose(); effects.dispose(); viewport.dispose(); debug.dispose();
 });

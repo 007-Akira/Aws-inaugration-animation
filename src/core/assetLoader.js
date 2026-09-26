@@ -20,7 +20,7 @@ export class AssetLoader {
   }
   loadOne(asset) {
     return new Promise((resolve, reject) => {
-      if (!['image', 'video'].includes(asset.type)) { reject(new Error(`Unsupported asset type: ${asset.type}`)); return; }
+      if (!['image', 'audio', 'video'].includes(asset.type)) { reject(new Error(`Unsupported asset type: ${asset.type}`)); return; }
       const element = asset.type === 'image' ? new Image() : document.createElement(asset.type);
       const event = asset.type === 'image' ? 'load' : 'loadeddata';
       let timer;
