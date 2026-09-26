@@ -70,17 +70,20 @@ button:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
 .central-seam-glow { position: absolute; z-index: 25; top: 28%; bottom: 5%; left: calc(50% - 1px); width: 2px; opacity: .75; background: linear-gradient(180deg, transparent, #e6eaff40 35%, #f4f1ff80 60%, #ffffffa8 85%, #cab9ff30); box-shadow: 0 0 9px 2px #e6eaff35, 0 0 26px 6px #9567e82c; pointer-events: none; }
 .seam-halo { position: absolute; z-index: 25; top: 32%; bottom: 6%; left: calc(50% - 24px); width: 48px; opacity: .4; background: radial-gradient(ellipse at 50% 60%, #e9e7ff50, #9567e822 50%, transparent 80%); pointer-events: none; }
 .screen-spill { z-index: 15; inset: 23% 17% 7%; opacity: 0; background: radial-gradient(ellipse at center, #a78bd622, #7949b00c 45%, transparent 73%); pointer-events: none; }
-#start-button { border: 0; background: none; padding: 48px; display: flex; flex-direction: column; align-items: center; gap: 32px; font-family: 'Cinzel', Georgia, serif; font-size: 30px; font-weight: 600; letter-spacing: .24em; color: #f1d28b; text-shadow: 0 2px 3px #000c, 0 0 16px #d9a74055, 0 0 36px #b9791926; transition: color .3s ease, text-shadow .3s ease; }
-#start-button:not(:disabled):is(:hover, :focus-visible) { color: #ffe8b0; text-shadow: 0 2px 3px #000b, 0 0 10px #ffe3a099, 0 0 28px #eeb74780, 0 0 52px #d9933255; }
-#start-button:not(:disabled):is(:hover, :focus-visible) .click-motif { filter: drop-shadow(0 0 10px #f5be56aa); }
-#start-label { position: relative; padding-left: .24em; }
-#start-label::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: -12px; height: 1px; background: linear-gradient(90deg, transparent, #efd18a9c, transparent); opacity: .65; transition: opacity .3s ease; }
-#start-button:not(:disabled):is(:hover, :focus-visible) #start-label::after { opacity: 1; }
-.click-motif { width: 64px; aspect-ratio: 1; position: relative; display: grid; place-items: center; }
-.outer-ring { position: absolute; inset: 0; border: 1px solid #e8c77773; border-radius: 50%; }
-.inner-ring { width: 50%; height: 50%; border: 1px solid #e8c777a6; border-radius: 50%; display: grid; place-items: center; }
-.inner-ring svg { width: 50%; }
-.click-motif::after { content: ''; position: absolute; top: 100%; height: 12px; width: 1px; background: linear-gradient(#e8c777cc,transparent); }
+/* The circular control is the sole pointer target; the title stays readable above it. */
+.inauguration-invitation { display: flex; flex-direction: column; align-items: center; gap: 36px; padding: 48px; pointer-events: none; color: #ffdfa0; }
+#start-label { position: relative; padding-left: .20em; font-family: 'Cinzel', Georgia, serif; font-size: 38px; font-weight: 700; letter-spacing: .20em; line-height: 1.35; text-shadow: 0 2px 4px #000, 0 0 14px #e5ae5873, 0 0 32px #bd7f3338; transition: color .25s ease, text-shadow .25s ease; }
+#start-label::after { content: ''; position: absolute; left: 18%; right: 18%; bottom: -12px; height: 2px; background: linear-gradient(90deg, transparent, #f5d18e, transparent); opacity: .8; }
+#start-button { border: 0; border-radius: 50%; background: radial-gradient(circle, #e8b95c24, #24150dcc 68%); padding: 0; width: 84px; height: 84px; display: grid; place-items: center; color: #ffdfa0; cursor: pointer; pointer-events: auto; box-shadow: 0 0 20px #dcac4938, inset 0 0 18px #e9ba4820; transition: color .25s ease, box-shadow .25s ease, transform .2s ease; }
+#start-button:not(:disabled):is(:hover, :focus-visible) { color: #fff0c4; box-shadow: 0 0 16px #f5be5699, 0 0 38px #e8a43766, inset 0 0 22px #f5be5640; transform: scale(1.06); }
+#start-button:focus-visible { outline: 2px solid #fff0c4; outline-offset: 7px; }
+#start-button:not(:disabled):active { transform: scale(.97); }
+.inauguration-invitation:has(#start-button:not(:disabled):is(:hover, :focus-visible)) #start-label { color: #fff0c4; text-shadow: 0 2px 4px #000, 0 0 14px #ffe3a0aa, 0 0 32px #eeb74780; }
+.click-motif { width: 100%; height: 100%; position: relative; display: grid; place-items: center; pointer-events: none; }
+.outer-ring { position: absolute; inset: 0; border: 3px solid #f1cc81; border-radius: 50%; }
+.inner-ring { width: 54%; height: 54%; border: 2px solid #f1cc81cc; border-radius: 50%; display: grid; place-items: center; }
+.inner-ring svg { width: 54%; }
+.click-motif::after { content: ''; position: absolute; top: 100%; height: 12px; width: 2px; background: linear-gradient(#e8c777cc,transparent); }
 #curtain-presets { border: 1px solid #555; margin: 0 0 12px; padding: 8px; }
 #curtain-presets button { font-size: 11px; padding: 5px; margin: 3px; }
 
@@ -119,11 +122,10 @@ button:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
-@font-face { font-family: TitleSans; font-style: normal; font-weight: 300 700; font-display: block; src: url(/assets/fonts/space-grotesk.ttf) format('truetype'); }
-@font-face { font-family: TitleSerif; font-style: normal; font-weight: 400 900; font-display: block; src: url(/assets/fonts/bodoni-moda.ttf) format('truetype'); }
-.final-title { z-index: 42; pointer-events: none; font-family: TitleSans, sans-serif; font-weight: 300; }
+@font-face { font-family: TitleMatch; font-style: normal; font-weight: 400; font-display: block; src: url(/assets/fonts/syncopate-regular.ttf) format('truetype'); }
+.final-title { z-index: 42; pointer-events: none; font-family: TitleMatch, sans-serif; font-weight: 400; }
 .final-title[hidden] { display: none; }
 .final-title svg { display: block; width: 100%; height: 100%; overflow: hidden; }
-.title-solid { fill: #f7f1ff; }
+.title-solid { fill: #f7f3f6; }
 .title-outline { fill: none; stroke: #d7baff; stroke-width: .85; stroke-dasharray: 700; stroke-dashoffset: 700; }
 .title-edge { fill: none; stroke: url(#final-edge-light); stroke-width: .65; }

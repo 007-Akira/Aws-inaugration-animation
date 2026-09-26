@@ -40,10 +40,12 @@
       <div id="energy-burst" class="energy-burst layer" aria-hidden="true"></div>
       <div id="sequence-blackout" class="sequence-blackout layer" aria-hidden="true"></div>
       <div class="interaction layer">
-        <button id="start-button" type="button" disabled>
+        <div class="inauguration-invitation">
           <span id="start-label">LOADING</span>
-          <span class="click-motif" aria-hidden="true"><span class="outer-ring"></span><span class="inner-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg></span></span>
-        </button>
+          <button id="start-button" type="button" aria-labelledby="start-label" disabled>
+          <span class="click-motif" aria-hidden="true"><span class="outer-ring"></span><span class="inner-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></span></span>
+          </button>
+        </div>
         <p id="status-message" role="status" aria-live="polite"></p>
       </div>
     </main>

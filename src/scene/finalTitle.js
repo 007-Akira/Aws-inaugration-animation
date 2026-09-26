@@ -1,8 +1,8 @@
 const NS = 'http://www.w3.org/2000/svg';
 export const titleLines = [
-  { text: 'AWS', family: 'TitleSans', weight: 300, y: 416, size: 120, spacing: 9, start: 2.15, finish: 2.9 },
-  { text: 'STUDENT BUILDER GROUP', family: 'TitleSans', weight: 500, y: 493, size: 48, spacing: 5, start: 2.95, finish: 3.65 },
-  { text: 'TKMCE', family: 'TitleSerif', weight: 400, y: 722, size: 270, spacing: 4, start: 3.9, finish: 4.9 },
+  { text: 'AWS', family: 'TitleMatch', weight: 400, y: 450, capHeight: 95, size: 140, spacing: 5, start: 2.15, finish: 2.9 },
+  { text: 'STUDENT BUILDER GROUP', family: 'TitleMatch', weight: 400, y: 537, capHeight: 46, size: 68, spacing: 3, start: 2.95, finish: 3.65 },
+  { text: 'TKMCE', family: 'TitleMatch', weight: 400, y: 744, capHeight: 180, size: 265, spacing: 8, start: 3.9, finish: 4.9 },
 ];
 const clamp = x => Math.max(0, Math.min(1, x));
 const smooth = x => { x = clamp(x); return x * x * (3 - 2 * x); };
@@ -22,17 +22,16 @@ export function createFinalTitle() {
       <text class="title-outline" ${i===2?'clip-path="url(#final-outline-clip)"':''} x="960" y="${line.y}" text-anchor="middle">${line.text}</text>
       <text class="title-solid" clip-path="url(#final-clip-${i})" x="960" y="${line.y}" text-anchor="middle">${line.text}</text>
       ${i===2?`<text class="title-edge" x="960" y="${line.y}" text-anchor="middle">${line.text}</text><text class="title-impact" fill="url(#final-impact-light)" x="960" y="${line.y}" text-anchor="middle" opacity="0">${line.text}</text>`:''}</g>`).join('')}
-    <rect class="title-sweep" x="960" y="453" width="2" height="45" fill="#e7d5ff" opacity="0"/>
-    <rect class="title-underline" x="960" y="766" width="0" height="1" fill="#d9c2f5"/>
+    <rect class="title-sweep" x="960" y="485" width="2" height="56" fill="#e7d5ff" opacity="0"/>
     </svg>`;
   document.querySelector('#stage').append(root);
   const groups=[...root.querySelectorAll('[data-title-line]')],outlines=[...root.querySelectorAll('.title-outline')];
   const clips=titleLines.map((_,i)=>root.querySelector(`#final-clip-${i} rect`));
   const outlineClip=root.querySelector('#final-outline-clip rect'),sweep=root.querySelector('.title-sweep');
-  const underline=root.querySelector('.title-underline'),anticipation=root.querySelector('.title-anticipation');
+  const anticipation=root.querySelector('.title-anticipation');
   const edge=root.querySelector('.title-edge'),gradient=root.querySelector('#final-edge-light');
   const impact=root.querySelector('.title-impact'),impactGradient=root.querySelector('#final-impact-light');
-  const widths=[270,680,934];
+  const widths=[400,1160,1170];
   let lastTime=-1,lastEdgeTime=-1;
   async function prepare() {
     for(const line of titleLines){
@@ -43,16 +42,18 @@ export function createFinalTitle() {
     const canvas=document.createElement('canvas');canvas.width=1920;canvas.height=1080;
     const ctx=canvas.getContext('2d',{willReadFrequently:true}),targets=[];
     titleLines.forEach((line,i)=>{
+      ctx.font=`${line.weight} 100px ${line.family}`;ctx.letterSpacing='0px';
+      line.size=100*line.capHeight/ctx.measureText(line.text).actualBoundingBoxAscent;
       groups[i].setAttribute('font-size',line.size);groups[i].setAttribute('letter-spacing',line.spacing);
       groups[i].querySelectorAll('text').forEach(text=>text.setAttribute('x',960+line.spacing/2));
       ctx.font=`${line.weight} ${line.size}px ${line.family}`;ctx.letterSpacing=`${line.spacing}px`;
       let width=ctx.measureText(line.text).width-line.spacing;
       // Uniform type sizing inside the existing cover-scaled stage; never stretch glyphs.
-      if(width>1000){line.size*= (1000-(line.text.length-1)*line.spacing)/(width-(line.text.length-1)*line.spacing);groups[i].setAttribute('font-size',line.size);ctx.font=`${line.weight} ${line.size}px ${line.family}`;width=ctx.measureText(line.text).width-line.spacing;}
+      if(width>1260){line.size*= (1260-(line.text.length-1)*line.spacing)/(width-(line.text.length-1)*line.spacing);groups[i].setAttribute('font-size',line.size);ctx.font=`${line.weight} ${line.size}px ${line.family}`;width=ctx.measureText(line.text).width-line.spacing;}
       widths[i]=width;
       ctx.clearRect(0,0,1920,1080);ctx.fillStyle='white';ctx.fillText(line.text,(1920-width)/2,line.y);
       const pixels=ctx.getImageData(0,0,1920,1080).data,points=[];
-      for(let y=Math.floor(line.y-line.size);y<line.y;y+=3)for(let x=400;x<1520;x+=3){if(pixels[(y*1920+x)*4+3]>80)points.push([x/960-1,1-y/540,i]);}
+      for(let y=Math.floor(line.y-line.size);y<line.y;y+=3)for(let x=Math.max(0,Math.floor(960-width/2)-8);x<Math.min(1920,Math.ceil(960+width/2)+8);x+=3){if(pixels[(y*1920+x)*4+3]>80)points.push([x/960-1,1-y/540,i]);}
       targets.push(points);
     });
     canvas.width=canvas.height=1;return targets;
@@ -74,9 +75,7 @@ export function createFinalTitle() {
       impact.style.opacity=String(Math.sin(solid*Math.PI)*.65);impactGradient.setAttribute('x1',`${solid*130-30}%`);impactGradient.setAttribute('x2',`${solid*130}%`);
       // Brief compositing dim for anticipation only; the approved environment is untouched.
       anticipation.setAttribute('opacity',.10*smooth((time-3.65)/.08)*(1-smooth((time-3.9)/.18)));
-      const lineWidth=widths[2]*.42*smooth((time-4.9)/.6);underline.setAttribute('x',960-lineWidth/2);underline.setAttribute('width',lineWidth);
-      underline.style.opacity=String(.12+.65*(1-smooth((time-5.4)/.8)));
-      edge.style.opacity=time>=4.9?'.16':'0';
+      edge.style.opacity=time>=4.9?'.10':'0';
     }
     if(time-lastEdgeTime<.08&&lastEdgeTime>=0)return;lastEdgeTime=time;
     const x=((time*.045)%1.8)-.4;gradient.setAttribute('x1',`${x*100}%`);gradient.setAttribute('x2',`${(x+.18)*100}%`);

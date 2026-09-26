@@ -29,11 +29,11 @@ test('procedural final environment moves behind stable live text and resets with
   const layout=()=>page.locator('.title-solid').evaluateAll(nodes=>nodes.map(node=>{const b=node.getBoundingClientRect();return [b.x,b.y,b.width,b.height];}));
   const before=await layout();
   const typography=await page.locator('.title-solid').evaluateAll(nodes=>nodes.map(node=>({family:getComputedStyle(node).fontFamily,weight:getComputedStyle(node).fontWeight,spacing:parseFloat(getComputedStyle(node).letterSpacing)})));
-  expect(typography.map(t=>t.family)).toEqual(['TitleSans','TitleSans','TitleSerif']);
-  expect(typography.map(t=>t.weight)).toEqual(['300','500','400']);
-  expect(typography[2].spacing).toBeLessThanOrEqual(5);
-  expect(before[2][2]/1280).toBeGreaterThan(.45);
-  expect(before[2][2]/1280).toBeLessThan(.55);
+  expect(typography.map(t=>t.family)).toEqual(['TitleMatch','TitleMatch','TitleMatch']);
+  expect(typography.map(t=>t.weight)).toEqual(['400','400','400']);
+  expect(typography[2].spacing).toBeLessThanOrEqual(8);
+  expect(before[2][2]/1280).toBeGreaterThan(.55);
+  expect(before[2][2]/1280).toBeLessThan(.65);
   const pixels=()=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>{
     const canvas=document.querySelector('#effects-canvas'),gl=canvas.getContext('webgl2');
     const data=new Uint8Array(160*100*4);gl.readPixels(80,canvas.height-160,160,100,gl.RGBA,gl.UNSIGNED_BYTE,data);
