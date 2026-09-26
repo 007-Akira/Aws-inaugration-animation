@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050505" />
+    <title>AWS Student Builder Group TKMCE — Inauguration</title>
+  </head>
+  <body>
+    <div id="app">
+    <main id="stage" class="stage" aria-label="AWS Student Builder Group TKMCE inauguration">
+      <div id="theatre" class="theatre layer">
+      <div class="environment layer" aria-hidden="true"></div>
+      <div class="cinema-screen">
+        <div class="cinematic-layer layer">
+          <video id="cinematic-video" preload="auto" playsinline disablepictureinpicture tabindex="-1" aria-hidden="true"></video>
+        </div>
+      </div>
+      <div class="screen-spill layer" aria-hidden="true"></div>
+      <div class="curtains layer" aria-hidden="true">
+        <div class="curtain curtain-left"></div>
+        <div class="curtain curtain-right"></div>
+      </div>
+      <div class="proscenium layer" aria-hidden="true">
+        <div class="frame-top"></div><div class="frame-left"></div><div class="frame-right"></div><div class="frame-floor"></div>
+      </div>
+      <div class="atmosphere layer" aria-hidden="true"><div class="spotlight-cone layer"></div><div class="footlight-bounce layer"></div><canvas id="theatre-dust" class="layer"></canvas></div>
+      <div class="central-seam-glow" aria-hidden="true"></div><div class="seam-halo" aria-hidden="true"></div>
+      <div class="seam-energy-travel" aria-hidden="true"></div><div class="inauguration-pulse" aria-hidden="true"></div>
+      <div class="cinematic-vignette layer" aria-hidden="true"></div>
+      </div>
+      <div class="reveal layer" aria-hidden="true">
+        <div class="reveal-content">
+          <p class="eyebrow">AWS Student Builder Group</p>
+          <h1>AWS SBG TKMCE</h1>
+          <p class="reveal-caption">TKM College of Engineering</p>
+        </div>
+      </div>
+      <div class="effects layer" aria-hidden="true"><canvas id="effects-canvas"></canvas></div>
+      <div id="energy-burst" class="energy-burst layer" aria-hidden="true"></div>
+      <div id="sequence-blackout" class="sequence-blackout layer" aria-hidden="true"></div>
+      <div class="interaction layer">
+        <button id="start-button" type="button" disabled>
+          <span id="start-label">LOADING</span>
+          <span class="click-motif" aria-hidden="true"><span class="outer-ring"></span><span class="inner-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg></span></span>
+        </button>
+        <p id="status-message" role="status" aria-live="polite"></p>
+      </div>
+    </main>
+    <p id="final-announcement" class="visually-hidden" role="status" aria-live="polite"></p>
+    <aside id="debug" hidden aria-label="Developer controls">
+      <strong>DEVELOPER CONTROLS</strong>
+      <dl>
+        <dt>State</dt><dd id="debug-state">loading</dd>
+        <dt>Sequence</dt><dd id="debug-phase">CURTAIN</dd>
+        <dt>Camera Z</dt><dd id="debug-camera">0</dd>
+        <dt>Draw calls</dt><dd id="debug-draws">0</dd>
+        <dt>Timeline</dt><dd id="debug-progress">0%</dd>
+        <dt>Assets</dt><dd id="debug-assets">0 / 0</dd>
+        <dt>FPS</dt><dd id="debug-fps">—</dd>
+      </dl>
+      <p id="debug-details"></p>
+      <div><button id="debug-start">Start</button><button id="debug-reset">Reset</button><button id="debug-fullscreen">Fullscreen</button><button id="debug-final">Final frame · animated</button></div>
+      <fieldset id="curtain-presets"><legend>Curtain inspection · paused timeline</legend>
+        <button data-curtain-progress="0">1 · Curtain closed</button><button data-curtain-progress="0.25">2 · 25% open</button><button data-curtain-progress="0.5">3 · 50% open</button><button data-curtain-progress="0.75">4 · 75% open</button><button data-curtain-progress="1">5 · Curtain open</button>
+      </fieldset>
+      <fieldset id="act-two-presets"><legend>Act II · paused checkpoints</legend>
+        <button data-act-two="CAMERA_ENTRY">Camera entry</button><button data-act-two="VOID_BRIDGE">Void bridge</button><button data-act-two="FLYTHROUGH_START">Flythrough start</button><button data-act-two="FLYTHROUGH_MID">Flythrough mid</button><button data-act-two="FLYTHROUGH_FAST">Flythrough fast</button><button data-act-two="CLIMAX">Climax</button><button data-act-two="FINAL_REVEAL_START">Final reveal start</button>
+      </fieldset>
+      <fieldset id="universe-tuning"><legend>Act II · live tuning multipliers</legend>
+        <label>Camera speed <input data-tune="cameraSpeed" type="range" min="0.5" max="1.5" step="0.05" value="1"><output>1</output></label>
+        <label>Particle density <input data-tune="particleDensity" type="range" min="0" max="1" step="0.05" value="1"><output>1</output></label>
+        <label>Streak intensity <input data-tune="streakIntensity" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
+        <label>Orange energy <input data-tune="orangeEnergy" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
+        <label>Fog / depth <input data-tune="fogDepth" type="range" min="0.25" max="2" step="0.05" value="1"><output>1</output></label>
+        <label>Camera drift <input data-tune="cameraDrift" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
+      </fieldset>
+      <small>F fullscreen · R reset · D debug · Space start</small>
+    </aside>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
