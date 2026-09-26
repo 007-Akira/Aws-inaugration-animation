@@ -4,6 +4,7 @@ import { assetManifest } from './config/assets';
 import { createStageViewport } from './core/stage';
 import { createState } from './core/state';
 import { AssetLoader } from './core/assetLoader';
+import { FlybyAudio } from './core/flybyAudio';
 import { VideoManager } from './core/video';
 import { bindControls } from './core/controls';
 import { createDebug } from './core/debug';
@@ -34,6 +35,7 @@ function stopClickSound() {
   if (clickSound) { clickSound.pause(); clickSound.currentTime = 0; }
 }
 const report = (error) => { console.warn(error); debug?.report(error); };
+const flybyAudio = new FlybyAudio(report);
 const video = new VideoManager(select('#cinematic-video'), report);
 const effects = createEffects(select('#effects-canvas'), viewport, report);
 const universe = createUniverse(effects);
@@ -41,6 +43,7 @@ const atmosphere = createTheatreAtmosphere(select('#theatre-dust'));
 const finalReveal = createFinalReveal(effects, elements.blackout, select('#final-announcement'));
 const master = createMasterTimeline(elements, timing, {
   universe, atmosphere,
+  onPlaybackTime: time => flybyAudio.update(time),
   onPhase: phase => { if (root.dataset.phase !== phase) root.dataset.phase = phase; },
   onFinalReveal: () => {
     finalReveal.start();
@@ -61,6 +64,7 @@ elements.stage.dataset.state = state.current;
 function start() {
   if (state.current !== 'ready') return;
   state.set('playing');
+  flybyAudio.start();
   if (clickSound) {
     clickSound.currentTime = 0;
     void clickSound.play().catch(error => { if (error.name !== 'AbortError') report(error); });
@@ -71,6 +75,7 @@ function start() {
 }
 let inspecting = false;
 function reset() {
+  flybyAudio.reset();
   stopClickSound();
   inspecting = false;
   finalReveal.stop();
@@ -105,6 +110,10 @@ debug = createDebug({ panel: select('#debug'), state, timeline: master.timeline,
 const unbind = bindControls({ root, viewport, presentation, start, debugStart, inspect, inspectActTwo, tune, previewFinal, reset, debug: select('#debug'), startButton, report });
 async function initializeAssets() {
   const [result, graphicsReady] = await Promise.all([loader.load(), universe.prepare()]);
+  let flybyReady = false;
+  try {
+    if (loader.get('flybyWhoosh')) { await flybyAudio.prepare(loader.get('flybyWhoosh')); flybyReady = true; }
+  } catch (error) { report(error); }
   clickSound = loader.get('inaugurationClick');
   if (clickSound) { clickSound.volume = 0.55; clickSound.loop = false; }
   video.attach(loader.get('intro'));
@@ -113,7 +122,7 @@ async function initializeAssets() {
     try { finalReady = await finalReveal.prepare(); }
     catch (error) { report(error); }
   }
-  if (result.ready && graphicsReady && finalReady) {
+  if (result.ready && graphicsReady && finalReady && flybyReady) {
     state.set('ready');
     if (new URLSearchParams(location.search).get('final') === 'true') previewFinal();
   }
@@ -126,5 +135,5 @@ async function initializeAssets() {
 void initializeAssets();
 
 if (import.meta.hot) import.meta.hot.dispose(() => {
-  stopClickSound(); unbind(); master.dispose(); video.reset(); finalReveal.dispose(); universe.dispose(); effects.dispose(); viewport.dispose(); debug.dispose();
+  flybyAudio.dispose(); stopClickSound(); unbind(); master.dispose(); video.reset(); finalReveal.dispose(); universe.dispose(); effects.dispose(); viewport.dispose(); debug.dispose();
 });

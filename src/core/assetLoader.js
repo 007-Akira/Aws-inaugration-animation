@@ -19,6 +19,14 @@ export class AssetLoader {
     return { ready: !this.failed.some((asset) => asset.critical), failed: this.failed };
   }
   loadOne(asset) {
+    if (asset.type === 'audio-buffer') {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.timeout);
+      return fetch(asset.src, { signal: controller.signal }).then(response => {
+        if (!response.ok) throw new Error(`Unable to load ${asset.id}`);
+        return response.arrayBuffer();
+      }).finally(() => clearTimeout(timer));
+    }
     return new Promise((resolve, reject) => {
       if (!['image', 'audio', 'video'].includes(asset.type)) { reject(new Error(`Unsupported asset type: ${asset.type}`)); return; }
       const element = asset.type === 'image' ? new Image() : document.createElement(asset.type);

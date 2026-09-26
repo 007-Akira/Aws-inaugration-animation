@@ -4,7 +4,7 @@ import { curtainPhysics } from '../config/timing';
 import { actTwoTiming, universeConfig, entryDuration, entryEase } from '../config/actTwo';
 import { createCurtainOpeningTimeline } from './curtain';
 
-export function createMasterTimeline(elements, timing, { universe, atmosphere, onComplete, onFinalReveal, onPhase }) {
+export function createMasterTimeline(elements, timing, { universe, atmosphere, onComplete, onFinalReveal, onPhase, onPlaybackTime = () => {} }) {
   const curtain = createCurtainOpeningTimeline(elements, timing);
   const entry = timing.curtainOpenDuration;
   const fly = entry + actTwoTiming.entryDuration + actTwoTiming.darknessDuration;
@@ -70,6 +70,7 @@ export function createMasterTimeline(elements, timing, { universe, atmosphere, o
   }
   function stopRendering() { rendering = false; cancelAnimationFrame(raf); raf = 0; }
   timeline.eventCallback('onUpdate', () => {
+    if (rendering) onPlaybackTime(timeline.time() - fly);
     if (timeline.time() >= black && blackStartedAt === null) { blackStartedAt = performance.now(); stopRendering(); }
     onPhase(phase());
   });
