@@ -89,11 +89,23 @@ export function createObjectLibrary() {
     ringPositions.push([Math.cos(a) * 1.16, y, Math.sin(a) * 1.16], [Math.cos(b) * 1.16, y, Math.sin(b) * 1.16]);
   }
   const rings = geometry(new THREE.BufferGeometry().setFromPoints(ringPositions.map(p => new THREE.Vector3(...p))));
-  const networkPoints = Array.from({ length: 13 }, () => new THREE.Vector3((random() - 0.5) * 4, (random() - 0.5) * 3.8, (random() - 0.5) * 2));
-  const links = [];
-  for (let i = 0; i < networkPoints.length; i++) {
-    links.push([i, (i + 1) % networkPoints.length]);
-    if (i % 2 === 0) links.push([i, (i + 4) % networkPoints.length]);
+  // A connected 3D graph with a small inner cluster and an open outer shell.
+  // Nearest-neighbour edges keep the structure legible instead of a solid mesh.
+  const networkPoints = [new THREE.Vector3(0, 0, 0)];
+  for (let i = 0; i < 20; i++) {
+    const angle = i * 2.3999632297;
+    const radius = i < 7 ? 0.8 + random() * 0.4 : 1.65 + random() * 0.55;
+    networkPoints.push(new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius * 0.85, (random() - 0.5) * 2.8));
+  }
+  const links = [], connected = new Set();
+  function connect(a, b) {
+    const low = Math.min(a, b), high = Math.max(a, b), key = `${low}:${high}`;
+    if (!connected.has(key)) { connected.add(key); links.push([low, high]); }
+  }
+  for (let i = 1; i < networkPoints.length; i++) {
+    // Connecting to an earlier vertex guarantees one connected graph.
+    const nearer = networkPoints.slice(0, i).map((point, j) => ({ index: j, distance: point.distanceToSquared(networkPoints[i]) })).sort((a,b) => a.distance-b.distance);
+    nearer.slice(0, 2).forEach(point => connect(i, point.index));
   }
   const networkLines = geometry(new THREE.BufferGeometry().setFromPoints(links.flatMap(([a, b]) => [networkPoints[a], networkPoints[b]])));
   const sockets = networkPoints.map(point => {
@@ -123,12 +135,13 @@ export function createObjectLibrary() {
     } else if (type === 'architecture') {
       group.add(new THREE.Mesh(panel, transparentPanel), new THREE.LineSegments(architectureGeometry, white));
     } else if (type === 'network') {
-      group.add(new THREE.LineSegments(networkLines, dim));
+      group.add(new THREE.LineSegments(networkLines, white));
       const nodes = new THREE.InstancedMesh(sphere, nodeMaterial, networkPoints.length);
       networkPoints.forEach((point, i) => { matrix.makeTranslation(point.x, point.y, point.z); nodes.setMatrixAt(i, matrix); });
       group.add(nodes);
       const pulses = new THREE.InstancedMesh(sphere, pulseMaterial, 5);
       pulses.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      pulses.frustumCulled = false; // Traffic moves beyond its initial instance bounds.
       group.add(pulses);
       const point = new THREE.Vector3();
       group.userData.update = (time, energy) => {

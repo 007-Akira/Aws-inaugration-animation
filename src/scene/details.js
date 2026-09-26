@@ -128,8 +128,8 @@ export function createDetailLibrary({ geometry, material, texture }) {
       const coreEdges=geometry(new THREE.EdgesGeometry(core));
       group.add(segments(traces),segments(accents,purple),merged(parts,silver),new THREE.Mesh(core,shellMaterial),new THREE.LineSegments(coreEdges,cool));
     } else if (type === 'network') {
-      // Detail sockets share the same deterministic points supplied by the base library.
-      group.add(plaque(3,1.05,0.32,0,-2.06,0));
+      // Keep the graph entirely open: its sockets are added by the base library.
+      // No solid label plate or hardware enclosure.
     } else if (type === 'code') {
       parts.push(box(4.48,0.035,0.12,0,1.42,-0.04),box(4.48,0.035,0.12,0,-1.42,-0.04),box(0.035,2.84,0.12,-2.24,0,-0.04),box(0.035,2.84,0.12,2.24,0,-0.04));
       for(let i=0;i<20;i++) { const x=-1.95+i*0.205; traces.push([x,-1.44,0.02],[x,-1.39,0.02]); }

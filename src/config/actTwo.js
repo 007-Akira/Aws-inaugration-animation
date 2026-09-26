@@ -18,7 +18,7 @@ export const universeConfig = Object.freeze({
   fogDensity: 0.007,
   // Procedural, authored hero fly-bys: type, position, scale, Euler rotation.
   heroes: [
-    ['compute', [-12, 6.5, -48], 3.3, [0.10, 0.45, -0.08]],
+    ['network', [-10, 4.5, -48], 3.5, [0.10, 0.35, -0.08]],
     ['database', [-9, -0.6, -94], 2.1, [0.12, 0.05, -0.24]],
     ['cloud', [12, 6, -145], 2.5, [0.05, -0.18, 0.12]],
     ['network', [-14, 0, -202], 2.7, [-0.08, 0.1, 0.12]],

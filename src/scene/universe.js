@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { identity, voidTreatment } from '../config/identity';
+import { timing } from '../config/timing';
 import { createObjectLibrary, seededRandom } from './objects';
 import { createParticleField } from './particles';
 import { createEntryCorridor } from './entryCorridor';
@@ -112,6 +113,8 @@ export function createUniverse(effects) {
     coreMaterial.opacity = glowMaterial.opacity;
     core.scale.setScalar(THREE.MathUtils.lerp(28, 14 + energy * 8, controls.emergence));
     flare.scale.set(THREE.MathUtils.lerp(190, 780 + convergence * 500, controls.emergence), 5 + energy * 2, 1);
+    // Graph traffic begins with the curtain reveal, not at the flythrough boundary.
+    const graphTime = Math.max(0, time + actTwoTiming.entryDuration + actTwoTiming.darknessDuration + timing.curtainOpenDuration - timing.spillFadeStart);
     for (const item of objects) {
       const ahead = camera.position.z - item.z;
       // Finite authored fly-bys remain in world space and are never teleported/recycled.
@@ -120,10 +123,10 @@ export function createUniverse(effects) {
       item.mesh.visible = controls.emergence > 0.001 && ahead > -35 && ahead < 700 && fogVisibility > 0.002;
       if (item.mesh.isMesh) item.mesh.material.opacity = 0.48 * THREE.MathUtils.smoothstep(controls.emergence, 0.55, 1);
       item.mesh.position.set(item.x * (1 - convergence * 0.97), item.y * (1 - convergence * 0.97), item.z - convergence * 240);
-      item.mesh.rotation.set(item.rotation[0], item.rotation[1] + Math.sin(t * 0.4 + item.index) * 0.045, item.rotation[2]);
+      item.mesh.rotation.set(item.rotation[0], item.rotation[1] + Math.sin((item.mesh.name === 'network' ? graphTime : t) * 0.4 + item.index) * 0.045, item.rotation[2]);
       // Fine surfaces are only needed on nearby heroes; distant silhouettes stay cheap.
       if (item.detail) item.detail.visible = ahead < 185;
-      if (item.mesh.visible) item.mesh.userData.update?.(t, energy);
+      if (item.mesh.visible) item.mesh.userData.update?.(graphTime, energy);
     }
     corridor.update(controls.emergence, time, convergence, effects.renderer?.getPixelRatio() ?? 1);
     particles.update({
