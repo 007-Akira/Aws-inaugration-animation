@@ -13,7 +13,7 @@ npm run build
 npm run preview
 ```
 
-Development: http://localhost:5173. Production preview: http://localhost:4173. Keep the local server running during presentation; do not open the HTML using `file://`. All images, fonts and scripts are local at runtime. The experience is silent. The stage uses fixed 1920×1080 design coordinates and scales proportionally to cover the viewport. Non-16:9 screens crop the outer edges; nothing stretches. All visual layers share this transform.
+Development: http://localhost:5173. Production preview: http://localhost:4173. Keep the local server running during presentation; do not open the HTML using `file://`. All images, fonts and scripts are local at runtime. The inauguration click and object fly-bys use local sound effects; there is no background music. The stage uses fixed 1920×1080 design coordinates and scales proportionally to cover the viewport. Non-16:9 screens crop the outer edges; nothing stretches. All visual layers share this transform.
 
 ## Presentation mode
 
@@ -128,7 +128,7 @@ public/assets/
 
 Layer order: persistent 3D void, transparent theatre opening, moving curtains, fixed proscenium, atmosphere/seam/vignette, reserved title, burst/blackout, interaction. Debug lives outside the stage. Decoration never intercepts interaction.
 
-The curtain image is a critical preloaded asset. Manifest entries use unique IDs, type (`image`, `video`), local URL and a `critical` flag. Loading uses a 15-second timeout. Critical failures block start; optional failures are listed in debug. Reload after fixing a missing critical file. The local-video API remains reserved; Act II is rendered live rather than played as footage.
+The curtain image is a critical preloaded asset. Manifest entries use unique IDs, type (`image`, `audio`, `audio-buffer`, `video`), local URL and a `critical` flag. Loading uses a 15-second timeout. Critical failures block start; optional failures are listed in debug. Reload after fixing a missing critical file. The local-video API remains reserved; Act II is rendered live rather than played as footage.
 
 ## Validation and performance
 
@@ -159,3 +159,5 @@ The curtain opening now reveals a destination already forming: six faint, suspen
 The final title matches the supplied art direction using live, warm near-white sans-serif text. Montserrat, Jost, Outfit, Urbanist, Manrope, Inter Tight, Gruppo, Space Grotesk and Syncopate were compared; Syncopate was the closest tested match in natural width and letter construction, not an identification of the raster source font. Tracking is restrained (5px / 3px / 8px at the 1920 design size). The approximate cap-height hierarchy is 95px / 46px / 180px. Local comparison sheets and the 1920×1080 capture are kept in ignored `artifacts/`; no reference image ships in production.
 
 Only the first hero fly-by is replaced by a connected graph. Later fly-bys retain the varied database, cloud, network, code, cube, server-rack and architecture models, with the original secondary-object mix. Graphs use shared nearest-neighbour edge geometry, instanced nodes and moving packets; their traffic and gentle rotation start during the curtain reveal.
+
+Fly-by whooshes are decoded once and triggered from the visual timeline about 0.7 seconds before each hero object’s closest approach. Independent voices overlap, pan toward the object, vary playback rate from 0.94–1.06, and use restrained gains with overlap compensation. Reset stops every voice; debug previews stay silent and whooshes fade out before the burst.
