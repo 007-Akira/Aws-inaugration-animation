@@ -15,7 +15,7 @@ export function createFinalScene(targets) {
   const atmosphere = new THREE.Mesh(geo(new THREE.PlaneGeometry(90, 55)), mat(new THREE.ShaderMaterial({
     ...additive, uniforms: { uTime: clock }, vertexShader: planeVertex,
     fragmentShader: `varying vec2 vUv; uniform float uTime;
-    void main(){vec2 p=(vUv-.5)*2.;float t=uTime*.035;
+    void main(){vec2 p=(vUv-.5)*2.;float t=uTime*.075;
       float field=sin(p.x*5.+sin(p.y*7.+t))*sin(p.y*4.-t*.71);
       float haze=pow(.5+.5*field,3.)*.026*exp(-dot(p,p)*2.);
       gl_FragColor=vec4(.24,.075,.42,haze);
@@ -48,8 +48,8 @@ export function createFinalScene(targets) {
     uniform float uTime,uWidth,uOffset,uPhase,uSpeed,uIntensity;
     void main(){vUv=uv;float t=uTime*uSpeed;float u=uv.x;float edge=uv.y*2.-1.;
       vec3 p=position;float envelope=sin(u*3.14159);
-      p.x+=(sin(u*9.+t+uPhase)*.5+sin(u*17.-t*.63+uPhase)*.15)*envelope*uIntensity;
-      p.y+=sin(u*11.-t*.81+uPhase)*.44*envelope*uIntensity;
+      p.x+=(sin(u*9.+t+uPhase)*.65+sin(u*17.-t*.63+uPhase)*.20)*envelope*uIntensity;
+      p.y+=sin(u*11.-t*.81+uPhase)*.56*envelope*uIntensity;
       p.z+=sin(u*8.+t*.73+uPhase)*.7;
       float twist=sin(u*10.-t*.52+uPhase);
       p+=aSide*(edge*uWidth*(.48+.52*abs(twist))+uOffset+sin(u*15.+t)*.08);
@@ -57,8 +57,8 @@ export function createFinalScene(targets) {
       gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`;
   const ribbonFragment = `varying vec2 vUv;varying vec3 vWorld;uniform float uTime,uPhase,uOpacity,uIntensity;uniform vec3 uColor;
     void main(){float across=abs(vUv.y*2.-1.);float veil=pow(max(0.,1.-across),1.9);
-      float thread=pow(.5+.5*sin(vUv.y*96.+sin(vUv.x*15.-uTime*.16+uPhase)*2.),12.);
-      float flow=.7+.3*sin(vUv.x*24.-uTime*.35+uPhase);
+      float thread=pow(.5+.5*sin(vUv.y*96.+sin(vUv.x*15.-uTime*.32+uPhase)*2.),12.);
+      float flow=.7+.3*sin(vUv.x*24.-uTime*.65+uPhase);
       float tip=smoothstep(0.,.07,vUv.x)*(1.-smoothstep(.92,1.,vUv.x));
       float titleSpace=1.-.78*exp(-vWorld.x*vWorld.x/65.-vWorld.y*vWorld.y/11.);
       float alpha=(veil*.53+thread*.25)*tip*flow*uOpacity*titleSpace*(.8+.2*uIntensity);
@@ -70,12 +70,12 @@ export function createFinalScene(targets) {
     const strands = [[2.2,0,0x703bcf,.65],[.20,.47,0xa17aff,.75],[.72,-.68,0xb640a8,.48],[3.0,.08,0x6030a8,.16]];
     strands.forEach(([width,offset,color,opacity],j) => {
       const m=mat(new THREE.ShaderMaterial({ ...additive, side: THREE.DoubleSide,
-        uniforms:{uTime:clock,uIntensity:intensity,uWidth:{value:width},uOffset:{value:offset},uPhase:{value:i*1.6+j*.21},uSpeed:{value:Math.PI*2/(13+i*2.3)},uOpacity:{value:opacity},uColor:{value:new THREE.Color(color)}},vertexShader:ribbonVertex,fragmentShader:ribbonFragment}));
+        uniforms:{uTime:clock,uIntensity:intensity,uWidth:{value:width},uOffset:{value:offset},uPhase:{value:i*1.6+j*.21},uSpeed:{value:Math.PI*2/(10+i*1.8)},uOpacity:{value:opacity},uColor:{value:new THREE.Color(color)}},vertexShader:ribbonVertex,fragmentShader:ribbonFragment}));
       const mesh=new THREE.Mesh(g,m);mesh.frustumCulled=false;scene.add(mesh);
     });
     for(let j=0;j<2;j++){
       const m=mat(new THREE.ShaderMaterial({...additive,side:THREE.DoubleSide,
-        uniforms:{uTime:clock,uIntensity:intensity,uWidth:{value:.34+j*.3},uOffset:{value:1.1+j*.5},uPhase:{value:i*2.1+j},uSpeed:{value:Math.PI*2/(21+i*2.1)},uOpacity:{value:.09},uColor:{value:new THREE.Color(0x8451cc)}},vertexShader:ribbonVertex,fragmentShader:ribbonFragment}));
+        uniforms:{uTime:clock,uIntensity:intensity,uWidth:{value:.34+j*.3},uOffset:{value:1.1+j*.5},uPhase:{value:i*2.1+j},uSpeed:{value:Math.PI*2/(16+i*1.8)},uOpacity:{value:.09},uColor:{value:new THREE.Color(0x8451cc)}},vertexShader:ribbonVertex,fragmentShader:ribbonFragment}));
       const mesh=new THREE.Mesh(g,m);mesh.position.z=-5;mesh.frustumCulled=false;scene.add(mesh);
     }
   });
@@ -95,14 +95,14 @@ export function createFinalScene(targets) {
     const m=mat(new THREE.ShaderMaterial({...additive,vertexColors:true,uniforms:{uTime:clock,uReveal:reveal,uIntensity:intensity,uDpr:pixelRatio},fragmentShader:particleFragment,
       vertexShader:`attribute vec3 aSeed;varying vec3 vColor;varying float vAlpha;uniform float uTime,uReveal,uIntensity,uDpr;
       void main(){float t=uTime;vec3 p=position;
-        p.x+=sin(t*(.045+aSeed.y*.035)+aSeed.x)*(.35+aSeed.z)*uIntensity;
-        p.y+=cos(t*(.031+aSeed.z*.04)+aSeed.x*2.)*.7*uIntensity;
-        p.z+=sin(t*.05+aSeed.x)*.6;
+        p.x+=sin(t*(.10+aSeed.y*.06)+aSeed.x)*(.45+aSeed.z)*uIntensity;
+        p.y+=cos(t*(.075+aSeed.z*.065)+aSeed.x*2.)*.95*uIntensity;
+        p.z+=sin(t*.10+aSeed.x)*.8;
         p.xy+=vec2(sin(t*.42+aSeed.x),cos(t*.31+aSeed.x))*pow(.5+.5*sin(t*.23+aSeed.x),16.)*.12;
         vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
         gl_PointSize=clamp((90.+aSeed.y*140.)/-mv.z,1.5,6.)*uDpr;
         vColor=mix(vec3(1.,.43,.15),color,smoothstep(0.,2.,uReveal));
-        vAlpha=(.28+.42*pow(.5+.5*sin(t*.6+aSeed.x),2.))*(.7+.3*uIntensity);}`
+        vAlpha=(.28+.42*pow(.5+.5*sin(t*.85+aSeed.x),2.))*(.7+.3*uIntensity);}`
     }));const points=new THREE.Points(g,m);points.frustumCulled=false;scene.add(points);
   }
   particleLayer(finalConfig.backgroundParticles);particleLayer(finalConfig.foregroundParticles,true);
@@ -110,7 +110,7 @@ export function createFinalScene(targets) {
   const core= new THREE.Mesh(geo(new THREE.PlaneGeometry(6,6)),mat(new THREE.ShaderMaterial({...additive,
     uniforms:{uTime:clock,uReveal:reveal},vertexShader:planeVertex,
     fragmentShader:`varying vec2 vUv;uniform float uTime,uReveal;void main(){vec2 p=(vUv-.5)*2.;float r=length(p);
-      float intro=1.-smoothstep(0.,2.7,uReveal);float breath=1.+sin(uTime*.31)*.025;
+      float intro=1.-smoothstep(0.,2.7,uReveal);float breath=1.+sin(uTime*.48)*.06;
       float light=exp(-r*r*100.)*.8+exp(-r*r*15.)*.13;
       vec3 tint=mix(vec3(1.,.50,.19),vec3(.74,.56,1.),smoothstep(0.,2.,uReveal));
       vec3 warm=vec3(1.,.83,.63)*exp(-r*r*230.)*.26;
@@ -154,10 +154,11 @@ export function createFinalScene(targets) {
       clock.value=reduced?0:time;reveal.value=time;pixelRatio.value=dpr;
       const calm=THREE.MathUtils.smoothstep(time,finalConfig.calmAfter,finalConfig.calmAfter+4);
       const dip=1-.5*Math.exp(-(((time-3.95)/.22)**2));
-      intensity.value=(1-calm*.52)*dip;
+      // Settle after the reveal without letting the galaxy appear frozen.
+      intensity.value=(1-calm*.22)*dip;
       core.scale.setScalar(1+(Math.sin(Math.min(time/2.3,1)*Math.PI)*1.3));
       attraction.visible=time<5.3;
-      camera.position.set(reduced?0:Math.sin(time*.12)*.075,reduced?0:Math.sin(time*.095)*.045,24);
+      camera.position.set(reduced?0:Math.sin(time*.16)*.12,reduced?0:Math.sin(time*.12)*.075,24);
       camera.rotation.z=reduced?0:Math.sin(time*.065)*.0007;
     },
     dispose(){geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());scene.clear();},
