@@ -56,7 +56,7 @@ test('shared 1920×1080 stage covers desktop and unusual viewports', async ({ pa
       if (layerBox) expect(layerBox).toEqual(box);
     }
     const shape = await page.locator('.click-motif').boundingBox();
-    expect(shape.width).toBeCloseTo(64 * scale, 1);
+    expect(shape.width).toBeCloseTo(84 * scale, 1);
     expect(shape.height).toBeCloseTo(shape.width, 1);
     expect(await page.evaluate(() => ({ width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight }))).toEqual(size);
   }
