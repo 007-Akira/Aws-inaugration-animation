@@ -12,6 +12,7 @@ export function createMasterTimeline(elements, timing, { universe, atmosphere, o
   const burst = fly + actTwoTiming.flyDuration;
   const black = burst + actTwoTiming.burstDuration;
   const final = black + actTwoTiming.blackHold;
+  let rendering = false;
   let raf = 0, fired = false, blackStartedAt = null, completionTimer = 0;
   // A slow GPU frame must not shorten the *visible* black hold through timeline catch-up.
   function finishAfterBlackHold() {
@@ -62,8 +63,12 @@ export function createMasterTimeline(elements, timing, { universe, atmosphere, o
     if (time < black) universe.render(time - fly);
     if (time <= entry + actTwoTiming.entryDuration) atmosphere.render(time);
   }
-  function renderLoop() { draw(); raf = requestAnimationFrame(renderLoop); }
-  function stopRendering() { cancelAnimationFrame(raf); raf = 0; }
+  function renderLoop() {
+    if (!rendering) return;
+    draw();
+    if (rendering) raf = requestAnimationFrame(renderLoop);
+  }
+  function stopRendering() { rendering = false; cancelAnimationFrame(raf); raf = 0; }
   timeline.eventCallback('onUpdate', () => {
     if (timeline.time() >= black && blackStartedAt === null) { blackStartedAt = performance.now(); stopRendering(); }
     onPhase(phase());
@@ -82,7 +87,10 @@ export function createMasterTimeline(elements, timing, { universe, atmosphere, o
   reset();
   return {
     timeline, labels, reset, redraw: draw,
-    play: () => { timeline.play(0); stopRendering(); raf = requestAnimationFrame(renderLoop); },
+    play: () => {
+      stopRendering(); timeline.play(0);
+      rendering = true; raf = requestAnimationFrame(renderLoop);
+    },
     inspectLabel: (label) => {
       if (!(label in labels)) return;
       stopRendering(); timeline.pause(labels[label], true);

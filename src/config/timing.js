@@ -1,8 +1,8 @@
 // Approved Act I timings, in seconds from the inauguration click.
 export const timing = Object.freeze({
   interactionFadeDuration: 0.45,
-  lightPeak: 0.15,
-  resistanceStart: 0.30,
+  lightPeak: 0.21,
+  resistanceStart: 0.20,
   mainTravelStart: 0.40,
   mainTravelEnd: 2.40,
   settleRebound: 3.10,
@@ -23,6 +23,4 @@ export const curtainPhysics = Object.freeze({
   foldShadow: 0.35,
   foldHighlight: 0.16,
   travelEase: 'M0,0 C0.22,0.02 0.24,0.65 0.48,0.88 C0.65,0.98 0.82,1 1,1',
-  impactVolume: 0.18,
-  impactDuration: 2.2,
 });
