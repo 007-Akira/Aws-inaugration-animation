@@ -84,15 +84,22 @@ export function createFinalScene(targets) {
     void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;float glow=exp(-d*d*4.)*(1.-smoothstep(.5,1.,d));gl_FragColor=vec4(vColor,glow*vAlpha);
     #include <colorspace_fragment>
     }`;
+  const starFragment = `varying vec3 vColor;varying float vAlpha;
+    void main(){vec2 p=(gl_PointCoord-.5)*2.;float r=length(p);if(r>1.)discard;
+      float core=exp(-r*r*9.);
+      float rays=(exp(-abs(p.x)*35.)*exp(-abs(p.y)*4.)+exp(-abs(p.y)*35.)*exp(-abs(p.x)*4.))*.28;
+      gl_FragColor=vec4(vColor,(core+rays)*(1.-smoothstep(.65,1.,r))*vAlpha);
+      #include <colorspace_fragment>
+    }`;
   function particleLayer(count,foreground=false) {
     const p=[],seed=[],colors=[];
     for(let i=0;i<count;i++){
       p.push((random()-.5)*(foreground?36:68),(random()-.5)*(foreground?22:40),foreground?3+random()*6:-4-random()*35);
       seed.push(random()*6.28,random(),random());
-      const n=random(), c=new THREE.Color(n<.7?0x8c56d8:n<.9?0xe2ddf5:n<.98?0xc550b9:0xf1b174);colors.push(c.r,c.g,c.b);
+      const n=random(), c=new THREE.Color(n<.48?0x8c56d8:n<.86?0xe2ddf5:n<.97?0xc550b9:0xf1b174);colors.push(c.r,c.g,c.b);
     }
     const g=geo(new THREE.BufferGeometry());g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('aSeed',new THREE.Float32BufferAttribute(seed,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
-    const m=mat(new THREE.ShaderMaterial({...additive,vertexColors:true,uniforms:{uTime:clock,uReveal:reveal,uIntensity:intensity,uDpr:pixelRatio},fragmentShader:particleFragment,
+    const m=mat(new THREE.ShaderMaterial({...additive,vertexColors:true,uniforms:{uTime:clock,uReveal:reveal,uIntensity:intensity,uDpr:pixelRatio},fragmentShader:starFragment,
       vertexShader:`attribute vec3 aSeed;varying vec3 vColor;varying float vAlpha;uniform float uTime,uReveal,uIntensity,uDpr;
       void main(){float t=uTime;vec3 p=position;
         p.x+=sin(t*(.10+aSeed.y*.06)+aSeed.x)*(.45+aSeed.z)*uIntensity;
@@ -100,21 +107,25 @@ export function createFinalScene(targets) {
         p.z+=sin(t*.10+aSeed.x)*.8;
         p.xy+=vec2(sin(t*.42+aSeed.x),cos(t*.31+aSeed.x))*pow(.5+.5*sin(t*.23+aSeed.x),16.)*.12;
         vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;
-        gl_PointSize=clamp((90.+aSeed.y*140.)/-mv.z,1.5,6.)*uDpr;
+        gl_PointSize=clamp((110.+pow(aSeed.y,3.)*260.)/-mv.z,2.2,8.)*uDpr;
         vColor=mix(vec3(1.,.43,.15),color,smoothstep(0.,2.,uReveal));
-        vAlpha=(.28+.42*pow(.5+.5*sin(t*.85+aSeed.x),2.))*(.7+.3*uIntensity);}`
+        vAlpha=(.42+.50*pow(.5+.5*sin(t*.85+aSeed.x),2.))*(.7+.3*uIntensity);}`
     }));const points=new THREE.Points(g,m);points.frustumCulled=false;scene.add(points);
   }
   particleLayer(finalConfig.backgroundParticles);particleLayer(finalConfig.foregroundParticles,true);
 
-  const core= new THREE.Mesh(geo(new THREE.PlaneGeometry(6,6)),mat(new THREE.ShaderMaterial({...additive,
+  const core= new THREE.Mesh(geo(new THREE.PlaneGeometry(10,10)),mat(new THREE.ShaderMaterial({...additive,
     uniforms:{uTime:clock,uReveal:reveal},vertexShader:planeVertex,
     fragmentShader:`varying vec2 vUv;uniform float uTime,uReveal;void main(){vec2 p=(vUv-.5)*2.;float r=length(p);
       float intro=1.-smoothstep(0.,2.7,uReveal);float breath=1.+sin(uTime*.48)*.06;
-      float light=exp(-r*r*100.)*.8+exp(-r*r*15.)*.13;
-      vec3 tint=mix(vec3(1.,.50,.19),vec3(.74,.56,1.),smoothstep(0.,2.,uReveal));
-      vec3 warm=vec3(1.,.83,.63)*exp(-r*r*230.)*.26;
-      gl_FragColor=vec4(tint*light+warm,(.28+intro*.72)*breath*(1.-smoothstep(.7,1.,r)));
+      float heart=exp(-r*r*950.);
+      float halo=exp(-r*r*36.)*.12+exp(-r*r*8.)*.018;
+      float horizontal=exp(-abs(p.y)*180.)*exp(-abs(p.x)*7.)*.15;
+      float vertical=exp(-abs(p.x)*230.)*exp(-abs(p.y)*22.)*.035;
+      float angle=atan(p.y,p.x);
+      float rays=pow(.5+.5*sin(angle*7.+sin(angle*3.-uTime*.08)),22.)*exp(-r*16.)*.035;
+      vec3 light=vec3(1.,.88,.68)*heart*.95+vec3(1.,.48,.20)*(halo+horizontal+vertical+rays);
+      gl_FragColor=vec4(light,(.82+intro*.18)*breath*(1.-smoothstep(.7,1.,r)));
       #include <colorspace_fragment>
     }`
   })));core.position.set(0,0,-2);scene.add(core);
@@ -146,8 +157,34 @@ export function createFinalScene(targets) {
     void main(){float age=uReveal<3.?uReveal:mod(uTime*.12+aSeed.y*7.,7.);float distance=age*(.5+aSeed.z*2.4);
       vec3 p=vec3(cos(aSeed.x)*distance,sin(aSeed.x)*distance*.7,-2.+aSeed.z*2.);gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
       gl_PointSize=(1.+aSeed.y*1.8)*uDpr;vColor=mix(vec3(1.,.49,.16),vec3(.77,.61,1.),smoothstep(0.,2.,uReveal)*.86);
-      vAlpha=exp(-age*1.8)*(uReveal<3.?1.:.1);}`
+      vAlpha=exp(-age*1.2)*(uReveal<3.?1.:.28);}`
   })));sparks.frustumCulled=false;scene.add(sparks);
+
+  // Short golden embers radiate from the warm core in one batched draw call.
+  const streakPositions=[],streakSeeds=[],streakEnds=[];
+  for(let i=0;i<110;i++) {
+    const seed=[random()*Math.PI*2,random(),random()];
+    for(let end=0;end<2;end++){streakPositions.push(0,0,0);streakSeeds.push(...seed);streakEnds.push(end);}
+  }
+  const streakGeo=geo(new THREE.BufferGeometry());
+  streakGeo.setAttribute('position',new THREE.Float32BufferAttribute(streakPositions,3));
+  streakGeo.setAttribute('aSeed',new THREE.Float32BufferAttribute(streakSeeds,3));
+  streakGeo.setAttribute('aEnd',new THREE.Float32BufferAttribute(streakEnds,1));
+  const streaks=new THREE.LineSegments(streakGeo,mat(new THREE.ShaderMaterial({...additive,
+    uniforms:{uTime:clock,uReveal:reveal},
+    vertexShader:`attribute vec3 aSeed;attribute float aEnd;uniform float uTime,uReveal;varying float vAlpha;
+      void main(){float age=mod(uTime*.6+aSeed.y*5.,5.);
+        float radius=.35+age*(.8+aSeed.z*1.65);
+        radius-=aEnd*(.06+aSeed.z*.19);
+        float angle=aSeed.x+sin(age*.4+aSeed.x)*.035;
+        vec3 p=vec3(cos(angle)*radius,sin(angle)*radius*.85,-2.-aSeed.z*3.);
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+        vAlpha=smoothstep(0.,.35,age)*(1.-smoothstep(2.6,5.,age))*(.18+aSeed.z*.38)*(1.-aEnd*.75)*smoothstep(0.,1.,uReveal);
+      }`,
+    fragmentShader:`varying float vAlpha;void main(){gl_FragColor=vec4(1.,.57,.25,vAlpha);
+      #include <colorspace_fragment>
+    }`
+  })));streaks.frustumCulled=false;scene.add(streaks);
 
   return { scene,camera,
     update(time,dpr=1,reduced=false) {
