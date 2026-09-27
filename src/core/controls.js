@@ -8,7 +8,8 @@ export function bindControls({ root, viewport, presentation, start, debugStart, 
   const onKey = (event) => {
     // Cancel scroll defaults even for repeated keydown events in presentation mode.
     if (presentation && ['Space', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
-    if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.target?.matches?.('input:not([type=range]), textarea, select') || event.target.isContentEditable) return;
+    if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.target?.matches?.('input:not([type=range]):not([type=checkbox]), textarea, select') || event.target.isContentEditable) return;
+    if (event.code==='Space' && event.target?.matches?.('input[type=checkbox]')) return;
     if (!debug.hidden && /^Digit[1-5]$/.test(event.code)) {
       event.preventDefault(); inspect((Number(event.code.slice(-1)) - 1) / 4); return;
     }
@@ -34,7 +35,7 @@ export function bindControls({ root, viewport, presentation, start, debugStart, 
   const actPresets = document.querySelector('#act-two-presets');
   const tuningPanel = document.querySelector('#universe-tuning');
   const onActPreset = event => { const button = event.target.closest('[data-act-two]'); if (button && !debug.hidden) inspectActTwo(button.dataset.actTwo); };
-  const onTune = event => { if (!debug.hidden && event.target.matches('[data-tune]')) { event.target.nextElementSibling.value = event.target.value; tune(event.target.dataset.tune, Number(event.target.value)); } };
+  const onTune = event => { if (!debug.hidden && event.target.matches('[data-tune]')) { const value=event.target.type==='checkbox'?event.target.checked:Number(event.target.value); if(event.target.type!=='checkbox')event.target.nextElementSibling.value=value; tune(event.target.dataset.tune,value); } };
   actPresets.addEventListener('click', onActPreset);
   tuningPanel.addEventListener('input', onTune);
   const debugReset = document.querySelector('#debug-reset');

@@ -1,20 +1,21 @@
 import { actTwoTiming, cameraDistance, universeConfig } from '../config/actTwo';
 
-// Include convergence motion when finding the nearest camera approach.
-export function createFlybyCues() {
-  return universeConfig.heroes.map(([, [x,y,z]], index) => {
+// Close-pass sounds follow the first approach, not the later convergence pull.
+export function createFlybyCues(tuning = {}) {
+  return universeConfig.heroes.map((hero,index)=>({hero,index})).filter(({hero,index})=>
+    tuning.showHeroes!==false && index<Math.ceil(universeConfig.heroes.length*(tuning.heroObjectDensity??1)) && hero[4]?.whoosh!==false && (hero[4]?.closePass===undefined || hero[4].closePass<(tuning.closePassCount??6))
+  ).map(({hero:[, [x,y,z]],index}) => {
     let closest = 0, minimum = Infinity;
     const convergenceStart = actTwoTiming.flyDuration - actTwoTiming.convergenceDuration;
     for (let i=0; i<=1650; i++) {
-      const t=i*actTwoTiming.flyDuration/1650;
-      const collapse=t<=convergenceStart ? 0 : ((t-convergenceStart)/actTwoTiming.convergenceDuration)**3;
-      const distance=(x*x+y*y)*(1-collapse*.97)**2+(z+cameraDistance(t)-collapse*240)**2;
+      const t=i*convergenceStart/1650;
+      const distance=x*x+y*y+(z+cameraDistance(t)*(tuning.cameraSpeed??1))**2;
       if (distance<minimum) { minimum=distance; closest=t; }
     }
     const rate=.94+((index*37+11)%101)/100*.12;
-    return { at:closest-.7/rate, closest, rate, gain:.19+((index*19+7)%31)/1000,
+    return { at:closest-.7/rate, closest, distance:Math.sqrt(minimum), rate, gain:.19+((index*19+7)%31)/1000,
       pan:Math.sign(x)*Math.min(.75,.3+Math.abs(x)/40) };
-  }).sort((a,b)=>a.at-b.at);
+  }).filter(cue=>cue.distance<20).sort((a,b)=>a.at-b.at);
 }
 
 export class FlybyAudio {
@@ -26,12 +27,18 @@ export class FlybyAudio {
     this.bus=this.context.createGain(); this.bus.gain.value=.85; this.bus.connect(this.context.destination);
     this.buffer=await this.context.decodeAudioData(data.slice(0));
   }
-  start() {
+  start(tuning = {}) {
     this.reset();
+    this.cues=createFlybyCues(tuning);
     if (!this.buffer) return;
     this.active=true;
     // Called directly within the inauguration gesture; no timer or async unlock delay.
     void this.context.resume().catch(this.report);
+  }
+  reconfigure(tuning,time) {
+    this.cues=createFlybyCues(tuning);
+    this.next=this.cues.findIndex(cue=>cue.at>time);
+    if(this.next<0)this.next=this.cues.length;
   }
   update(time) {
     if (!this.active) return;

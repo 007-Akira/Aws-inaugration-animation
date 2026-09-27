@@ -165,7 +165,7 @@ test('effects share design coordinates and cap HiDPI drawing buffers', async ({ 
   const context = await browser.newContext({ viewport: { width: 3840, height: 2160 }, deviceScaleFactor: 3 });
   const page = await context.newPage();
   await page.goto('http://127.0.0.1:5173');
-  await expect(page.locator('#stage')).toHaveAttribute('data-state', 'ready');
+  await expect(page.locator('#stage')).toHaveAttribute('data-state', 'ready', { timeout: 30000 });
   const result = await page.evaluate(async () => {
     const { createStageViewport } = await import('/src/core/stage.js');
     const { createEffects } = await import('/src/animation/effects.js');

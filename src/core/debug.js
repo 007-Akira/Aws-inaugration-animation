@@ -12,6 +12,8 @@ export function createDebug({ panel, state, timeline, loader, universe, root }) 
     document.querySelector('#debug-phase').textContent = root.dataset.phase;
     document.querySelector('#debug-camera').textContent = universe.telemetry.cameraZ.toFixed(1);
     document.querySelector('#debug-draws').textContent = universe.telemetry.drawCalls;
+    const stats=universe.telemetry;
+    document.querySelector('#debug-population').textContent=`${stats.heroCount} / ${stats.midground} / ${stats.secondary}`;
     fields.state.textContent = state.current;
     fields.progress.textContent = `${Math.round(timeline.progress() * 100)}%`;
     const { loaded, total, failed } = loader.summary;

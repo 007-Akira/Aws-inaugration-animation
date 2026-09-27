@@ -31,12 +31,12 @@ export function createEntryCorridor() {
     fragmentShader:`uniform float uTime,uFade;varying float vAlpha,vDepth;
       void main(){float packet=pow(.5+.5*sin(vDepth*.095+uTime*.65),18.);
       float depth=exp(-vDepth*.006)*smoothstep(0.,12.,vDepth);
-      gl_FragColor=vec4(.40,.25,.68,vAlpha*uFade*depth*(.26+packet*.26));}`});
+      gl_FragColor=vec4(.38,.45,.55,vAlpha*uFade*depth*(.08+packet*.16));}`});
   const nodeMaterial=new THREE.ShaderMaterial({uniforms,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexShader,
     fragmentShader:`uniform float uFade;varying float vAlpha,vDepth;
       void main(){float r=length(gl_PointCoord-.5)*2.;float light=exp(-r*r*4.);
-      gl_FragColor=vec4(.73,.63,1.,vAlpha*uFade*light*exp(-vDepth*.004)*smoothstep(0.,12.,vDepth));}`});
+      gl_FragColor=vec4(.63,.72,.84,vAlpha*uFade*light*exp(-vDepth*.004)*smoothstep(0.,12.,vDepth));}`});
   group.add(new THREE.LineSegments(linesGeometry,lineMaterial),new THREE.Points(nodesGeometry,nodeMaterial));
-  return {group,update(build,time,collapse,dpr){uniforms.uBuild.value=build;uniforms.uTime.value=time;uniforms.uFade.value=1-collapse;uniforms.uDpr.value=dpr;group.visible=build>0;},
+  return {group,update(build,time,collapse,dpr){uniforms.uBuild.value=build;uniforms.uTime.value=time;uniforms.uFade.value=(1-collapse)*(1-THREE.MathUtils.smoothstep(time,0,2));uniforms.uDpr.value=dpr;group.visible=build>0;},
     dispose(){linesGeometry.dispose();nodesGeometry.dispose();lineMaterial.dispose();nodeMaterial.dispose();}};
 }

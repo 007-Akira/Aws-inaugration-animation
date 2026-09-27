@@ -64,7 +64,7 @@ elements.stage.dataset.state = state.current;
 function start() {
   if (state.current !== 'ready') return;
   state.set('playing');
-  flybyAudio.start();
+  flybyAudio.start(universe.tuning);
   if (clickSound) {
     clickSound.currentTime = 0;
     void clickSound.play().catch(error => { if (error.name !== 'AbortError') report(error); });
@@ -74,6 +74,16 @@ function start() {
   master.play();
 }
 let inspecting = false;
+function syncTuningControls() {
+  select('#universe-tuning').querySelectorAll('input').forEach(input => {
+    const value=universe.tuning[input.dataset.tune];
+    if(input.type==='checkbox')input.checked=value;
+    else {input.value=value;input.nextElementSibling.value=value;}
+  });
+}
+function resetForInspection() {
+  const values={...universe.tuning};reset();Object.assign(universe.tuning,values);syncTuningControls();
+}
 function reset() {
   flybyAudio.reset();
   stopClickSound();
@@ -81,7 +91,7 @@ function reset() {
   finalReveal.stop();
   master.reset();
   video.reset();
-  select('#universe-tuning').querySelectorAll('input').forEach(input => { input.value = '1'; input.nextElementSibling.value = '1'; });
+  syncTuningControls();
   elements.reveal.setAttribute('aria-hidden', 'true');
   if (state.current === 'playing' || state.current === 'complete') state.set('ready');
 }
@@ -96,20 +106,28 @@ function inspect(progress) {
 }
 function inspectActTwo(label) {
   if (state.current === 'loading' || state.current === 'error') return;
-  reset(); state.set('playing'); master.inspectLabel(label); inspecting = true;
+  resetForInspection(); state.set('playing'); master.inspectLabel(label); inspecting = true;
   debug.report('Act II paused. Space replays from closed. Checkpoints never dispatch reveal events.');
 }
-function tune(name, value) { if (name in universe.tuning) { universe.tuning[name] = value; master.redraw(); } }
+function tune(name, value) {
+  if (name in universe.tuning) {
+    universe.tuning[name]=value;
+    if(flybyAudio.active)flybyAudio.reconfigure(universe.tuning,master.timeline.time()-master.labels.FLYTHROUGH_START);
+    master.redraw();
+  }
+}
 function previewFinal() {
   if (state.current === 'loading' || state.current === 'error') return;
   reset(); state.set('playing'); master.inspectLabel('FINAL_REVEAL_START');
   finalReveal.start({ immediate: true }); state.set('complete'); inspecting = true;
 }
-function debugStart() { if (inspecting) reset(); start(); }
+function debugStart() { if (inspecting) resetForInspection(); start(); }
 debug = createDebug({ panel: select('#debug'), state, timeline: master.timeline, loader, universe, root });
 const unbind = bindControls({ root, viewport, presentation, start, debugStart, inspect, inspectActTwo, tune, previewFinal, reset, debug: select('#debug'), startButton, report });
 async function initializeAssets() {
-  const [result, graphicsReady] = await Promise.all([loader.load(), universe.prepare()]);
+  // Finish timed asset I/O before synchronous GPU/environment warm-up can block it.
+  const result = await loader.load();
+  const graphicsReady = await universe.prepare();
   let flybyReady = false;
   try {
     if (loader.get('flybyWhoosh')) { await flybyAudio.prepare(loader.get('flybyWhoosh')); flybyReady = true; }

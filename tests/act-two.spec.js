@@ -17,7 +17,8 @@ test('Act II has actual Z travel, silent checkpoints and complete reset', async 
     await expect(page.locator('.effects')).toBeVisible();
     await expect(page.locator('#theatre')).toBeHidden();
     const calls = Number(await page.locator('#debug-draws').textContent());
-    expect(calls).toBeGreaterThan(5); expect(calls).toBeLessThan(150);
+    expect(calls).toBeGreaterThan(5); // Includes capped bloom passes and the glass transmission pass.
+    expect(calls).toBeLessThan(200);
   }
   const speed = page.locator('[data-tune="cameraSpeed"]');
   await speed.fill('1.4'); await speed.dispatchEvent('input');

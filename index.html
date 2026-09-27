@@ -56,6 +56,7 @@
         <dt>State</dt><dd id="debug-state">loading</dd>
         <dt>Sequence</dt><dd id="debug-phase">CURTAIN</dd>
         <dt>Camera Z</dt><dd id="debug-camera">0</dd>
+        <dt>Near / mid / secondary</dt><dd id="debug-population">0 / 0 / 0</dd>
         <dt>Draw calls</dt><dd id="debug-draws">0</dd>
         <dt>Timeline</dt><dd id="debug-progress">0%</dd>
         <dt>Assets</dt><dd id="debug-assets">0 / 0</dd>
@@ -70,12 +71,21 @@
         <button data-act-two="CAMERA_ENTRY">Camera entry</button><button data-act-two="VOID_BRIDGE">Void bridge</button><button data-act-two="FLYTHROUGH_START">Flythrough start</button><button data-act-two="FLYTHROUGH_MID">Flythrough mid</button><button data-act-two="FLYTHROUGH_FAST">Flythrough fast</button><button data-act-two="CLIMAX">Climax</button><button data-act-two="FINAL_REVEAL_START">Final reveal start</button>
       </fieldset>
       <fieldset id="universe-tuning"><legend>Act II · live tuning multipliers</legend>
+        <label>Hero density <input data-tune="heroObjectDensity" type="range" min="0" max="1" step="0.05" value="1"><output>1</output></label>
+        <label>Secondary density <input data-tune="secondaryObjectDensity" type="range" min="0" max="1" step="0.05" value="1"><output>1</output></label>
+        <label>Star density <input data-tune="starDensity" type="range" min="0" max="1" step="0.05" value="1"><output>1</output></label>
+        <label>Midground density <input data-tune="midgroundDensity" type="range" min="0" max="1" step="0.05" value="1"><output>1</output></label>
+        <label>Close passes <input data-tune="closePassCount" type="range" min="0" max="6" step="1" value="6"><output>6</output></label>
         <label>Camera speed <input data-tune="cameraSpeed" type="range" min="0.5" max="1.5" step="0.05" value="1"><output>1</output></label>
-        <label>Particle density <input data-tune="particleDensity" type="range" min="0" max="1" step="0.05" value="1"><output>1</output></label>
-        <label>Streak intensity <input data-tune="streakIntensity" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
-        <label>Orange energy <input data-tune="orangeEnergy" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
-        <label>Fog / depth <input data-tune="fogDepth" type="range" min="0.25" max="2" step="0.05" value="1"><output>1</output></label>
-        <label>Camera drift <input data-tune="cameraDrift" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
+        <label>Streak length <input data-tune="streakLength" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
+        <label>Fog density <input data-tune="fogDensity" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
+        <label>Bloom strength <input data-tune="bloomStrength" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
+        <label>Orange energy <input data-tune="orangeEnergyIntensity" type="range" min="0" max="2" step="0.05" value="1"><output>1</output></label>
+        <label><input data-tune="showHeroes" type="checkbox" checked> Hero objects</label>
+        <label><input data-tune="showSecondary" type="checkbox" checked> Secondary objects</label>
+        <label><input data-tune="showStars" type="checkbox" checked> Stars / points</label>
+        <label><input data-tune="showStreaks" type="checkbox" checked> Streaks</label>
+        <label><input data-tune="showFog" type="checkbox" checked> Fog</label>
       </fieldset>
       <small>F fullscreen · R reset · D debug · Space start</small>
     </aside>

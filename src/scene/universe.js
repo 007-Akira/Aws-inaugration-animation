@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { createPopulation } from './population';
+import { createStarField } from './starField';
 import { identity, voidTreatment } from '../config/identity';
 import { timing } from '../config/timing';
 import { createObjectLibrary, seededRandom } from './objects';
@@ -8,33 +11,29 @@ import { universeConfig, actTwoTiming, cameraDistance, debugDefaults, entryTrave
 
 export function createUniverse(effects) {
   const { scene, camera } = effects;
+  let environmentTarget;
   const library = createObjectLibrary();
   const particles = createParticleField();
   const corridor = createEntryCorridor();
+  const population = createPopulation(), stars = createStarField();
   const root = new THREE.Group(); root.name = 'computational-universe';
   scene.add(root);
   scene.background = new THREE.Color(identity.void);
   scene.fog = new THREE.FogExp2(identity.void, universeConfig.fogDensity);
   camera.fov = 62; camera.near = 0.15; camera.far = 1800; camera.updateProjectionMatrix();
-  const ambient = new THREE.HemisphereLight(0x799ebd, 0x080b12, 0.65);
-  const key = new THREE.DirectionalLight(0x9ec4e0, 2.3); key.position.set(-12, 18, 16);
+  const ambient = new THREE.HemisphereLight(0xb2c4d6, 0x080b12, 0.8);
+  const key = new THREE.DirectionalLight(0xc9d7e2, 2.8); key.position.set(-12, 18, 16);
   const rim = new THREE.DirectionalLight(identity.violet, 1.5); rim.position.set(3, 0, -20);
-  root.add(ambient, key, rim, particles.group, corridor.group);
+  root.add(ambient, key, rim, particles.group, corridor.group, population.group, stars.group);
   const objects = [];
-  function add(type, position, scale, rotation, secondary = false, index = 0) {
-    const mesh = library.create(type, { detail: !secondary });
+  function add(type, position, scale, rotation, meta = {}, index = 0) {
+    const mesh = library.create(type, { detail: true });
     position = [position[0], position[1], position[2] - entryTravel];
     mesh.position.set(...position); mesh.rotation.set(...rotation); mesh.scale.setScalar(scale);
     root.add(mesh);
-    objects.push({ mesh, detail: mesh.getObjectByName('surface-detail'), x: position[0], y: position[1], z: position[2], rotation: [...rotation], secondary, index });
+    objects.push({ mesh, detail: mesh.getObjectByName('surface-detail'), x: position[0], y: position[1], z: position[2], rotation: [...rotation], scale, hero: true, meta, index });
   }
-  universeConfig.heroes.forEach((item, index) => add(...item, false, index));
-  const random = seededRandom(universeConfig.seed + 12);
-  const types = ['cube', 'architecture', 'network', 'database', 'cloud', 'compute'];
-  for (let i = 0; i < 22; i++) {
-    const side = i % 2 ? -1 : 1;
-    add(types[i % types.length], [side * (18 + random() * 35), (random() - 0.5) * 38, -100 - i * 23 - random() * 16], 0.7 + random() * 1.7, [random() * 0.35, side * 0.4, (random() - 0.5) * 0.4], true, i);
-  }
+  universeConfig.heroes.forEach((item, index) => add(...item, index));
   ['BUILD', 'COMPUTE', 'CLOUD', 'DATA', 'DEPLOY', 'AI'].forEach((text, i) => {
     const mesh = library.word(text);
     const x = (i % 2 ? -1 : 1) * (13 + i * 1.5), y = i % 3 === 0 ? 9 : -5 + i;
@@ -95,9 +94,9 @@ export function createUniverse(effects) {
     const drift = controls.cameraShake * tuning.cameraDrift;
     camera.position.set(Math.sin(t * 0.65) * drift * 0.9, Math.sin(t * 0.43) * drift * 0.55, -entryTravel * controls.entryProgress - cameraDistance(t, controls.cameraSpeed) * tuning.cameraSpeed);
     camera.rotation.set(Math.sin(t * 0.53) * drift * 0.0015, Math.sin(t * 0.4) * drift * 0.0015, Math.sin(t * 0.55) * drift * 0.008);
-    const energy = controls.orangeEnergyIntensity * tuning.orangeEnergy;
+    const energy = controls.orangeEnergyIntensity * tuning.orangeEnergy * tuning.orangeEnergyIntensity;
     const convergence = controls.collapse;
-    scene.fog.density = universeConfig.fogDensity * tuning.fogDepth * (1 + (1 - controls.emergence) * 2.6);
+    scene.fog.density = (tuning.showFog ? universeConfig.fogDensity * tuning.fogDepth * tuning.fogDensity : 0) * (1 + (1 - controls.emergence) * 2.6);
     root.visible = true;
     const orangeMix = controls.orangeBlend;
     rim.color.lerpColors(violetColor, orangeColor, orangeMix * 0.85);
@@ -107,9 +106,9 @@ export function createUniverse(effects) {
     rim.intensity = 0.8 + energy * 0.6;
     glowMaterial.opacity = Math.min(1, voidTreatment.beaconOpacity + controls.entryProgress * 0.12 + controls.emergence * energy * 0.12);
     flareMaterial.opacity = glowMaterial.opacity * 0.7;
-    glow.scale.setScalar(THREE.MathUtils.lerp(voidTreatment.beaconSize, 310 + energy * 42 + convergence * 220, controls.emergence));
-    hazeMaterial.uniforms.uEnergy.value = controls.voidOpacity * 0.2 + controls.emergence * (0.8 + energy * 0.12);
-    hazeMaterial.uniforms.uRays.value = controls.emergence;
+    glow.scale.setScalar(THREE.MathUtils.lerp(voidTreatment.beaconSize, 150 + energy * 20 + convergence * 160, controls.emergence));
+    hazeMaterial.uniforms.uEnergy.value = controls.voidOpacity * 0.04 + controls.emergence * (0.12 + energy * 0.025);
+    hazeMaterial.uniforms.uRays.value = controls.emergence * .25;
     coreMaterial.opacity = glowMaterial.opacity;
     core.scale.setScalar(THREE.MathUtils.lerp(28, 14 + energy * 8, controls.emergence));
     flare.scale.set(THREE.MathUtils.lerp(190, 780 + convergence * 500, controls.emergence), 5 + energy * 2, 1);
@@ -120,7 +119,8 @@ export function createUniverse(effects) {
       // Finite authored fly-bys remain in world space and are never teleported/recycled.
       // Distance fog, rather than a density gate, reveals each silhouette continuously.
       const fogVisibility = Math.exp(-((Math.max(0, ahead) * scene.fog.density) ** 2));
-      item.mesh.visible = controls.emergence > 0.001 && ahead > -35 && ahead < 700 && fogVisibility > 0.002;
+      const enabled=!item.hero || (tuning.showHeroes && item.index<Math.ceil(universeConfig.heroes.length*tuning.heroObjectDensity) && (item.meta.closePass===undefined || item.meta.closePass<tuning.closePassCount));
+      item.mesh.visible = enabled && controls.emergence > 0.001 && ahead > -25 && ahead < (item.hero?125:700) && fogVisibility > 0.002;
       if (item.mesh.isMesh) item.mesh.material.opacity = 0.48 * THREE.MathUtils.smoothstep(controls.emergence, 0.55, 1);
       item.mesh.position.set(item.x * (1 - convergence * 0.97), item.y * (1 - convergence * 0.97), item.z - convergence * 240);
       item.mesh.rotation.set(item.rotation[0], item.rotation[1] + Math.sin((item.mesh.name === 'network' ? graphTime : t) * 0.4 + item.index) * 0.045, item.rotation[2]);
@@ -128,12 +128,20 @@ export function createUniverse(effects) {
       if (item.detail) item.detail.visible = ahead < 185;
       if (item.mesh.visible) item.mesh.userData.update?.(graphTime, energy);
     }
-    corridor.update(controls.emergence, time, convergence, effects.renderer?.getPixelRatio() ?? 1);
+    corridor.update(controls.emergence, time, convergence, effects.scenePixelRatio);
+    const progress = THREE.MathUtils.smoothstep(t,0,actTwoTiming.flyDuration);
+    population.update({time:graphTime,flyTime:t,cameraZ:camera.position.z,progress,emergence:controls.emergence,collapse:convergence,tuning});
+    stars.group.visible=tuning.showStars;
+    // Lift the opening sky; ease back into the existing acceleration treatment.
+    const entranceStars=.35*(1-progress)**3;
+    stars.update({time:graphTime,opacity:controls.emergence*(.3+progress*.55+entranceStars),density:tuning.starDensity*(.45+progress*.55+entranceStars),orangeMix,collapse:convergence,dpr:effects.scenePixelRatio});
+    effects.setBloomStrength(.3*tuning.bloomStrength);
     particles.update({
       cameraZ: camera.position.z, advance: t * controls.particleSpeed * 2 + controls.entryProgress * 3 + Math.max(0, Math.min(time + actTwoTiming.darknessDuration, actTwoTiming.darknessDuration)) * 6,
-      length: controls.streakLength * tuning.streakIntensity,
+      length: controls.streakLength * tuning.streakIntensity * tuning.streakLength,
+      showStreaks: tuning.showStreaks, showStars: tuning.showStars,
       energy, orangeMix, collapse: convergence, opacity: THREE.MathUtils.lerp(controls.voidOpacity, 1, controls.emergence),
-      density: THREE.MathUtils.lerp(voidTreatment.particleDensity, 0.28 + controls.objectDensity * 0.72, controls.emergence) * tuning.particleDensity,
+      density: THREE.MathUtils.lerp(voidTreatment.particleDensity, 0.28 + controls.objectDensity * 0.72, controls.emergence) * tuning.particleDensity * tuning.starDensity,
     });
     effects.render();
   }
@@ -145,6 +153,14 @@ export function createUniverse(effects) {
   }
   return { controls, tuning, render, reset,
     async prepare() {
+      const renderer=effects.initialize();
+      if(!renderer)return false;
+      if(!environmentTarget){
+        const studio=new RoomEnvironment(),pmrem=new THREE.PMREMGenerator(renderer);
+        environmentTarget=pmrem.fromScene(studio,.04);
+        scene.environment=environmentTarget.texture;scene.environmentIntensity=.5;
+        studio.dispose();pmrem.dispose();
+      }
       root.visible = true;
       // Reset now renders the void; reveal hidden technology temporarily for GPU warm-up.
       objects.forEach(item => { item.mesh.visible = true; });
@@ -154,7 +170,7 @@ export function createUniverse(effects) {
       render(-1);
       return ready;
     },
-    get telemetry() { return { cameraZ: camera.position.z, visibleObjects: objects.filter(o => o.mesh.visible).length, drawCalls: effects.renderer?.info.render.calls ?? 0 }; },
-    dispose() { root.traverse(object => { if (object.isInstancedMesh) object.dispose(); }); scene.remove(root); hazeGeometry.dispose(); hazeMaterial.dispose(); library.dispose(); particles.dispose(); corridor.dispose(); texture.dispose(); glowMaterial.dispose(); flareMaterial.dispose(); coreMaterial.dispose(); scene.fog = null; scene.background = null; },
+    get telemetry() { return { cameraZ: camera.position.z, visibleObjects: objects.filter(o => o.mesh.visible).length, drawCalls: effects.renderer?.info.render.calls ?? 0, ...population.telemetry, heroCount: objects.filter(o=>o.hero&&o.mesh.visible).length }; },
+    dispose() { objects.forEach(item=>item.mesh.traverse(object=>{if(object.isInstancedMesh)object.dispose();})); scene.remove(root); hazeGeometry.dispose(); hazeMaterial.dispose(); library.dispose(); population.dispose(); stars.dispose(); particles.dispose(); corridor.dispose(); texture.dispose(); glowMaterial.dispose(); flareMaterial.dispose(); coreMaterial.dispose(); scene.fog = null; scene.background = null; scene.environment=null; environmentTarget?.dispose(); },
   };
 }

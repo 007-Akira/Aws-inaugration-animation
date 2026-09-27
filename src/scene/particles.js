@@ -48,8 +48,11 @@ export function createParticleField() {
       uniform vec3 uWhite, uViolet, uWarm;
       varying float vEnd, vSide, vTint, vFade;
       void main() {
-        float alpha = pow(1.0 - abs(vSide), 0.75) * (1.0 - vEnd * 0.85) * vFade * uOpacity;
-        vec3 base = vTint < 0.70 ? uWhite : vTint < 0.95 ? uViolet : uWarm * 0.3;
+        // Interpolated edge values can overshoot on clipped/antialiased triangles.
+        // A negative fractional power creates NaNs that contaminate the bloom chain.
+        float coverage = clamp(1.0 - abs(vSide), 0.0, 1.0);
+        float alpha = pow(coverage, 0.75) * clamp(1.0 - vEnd * 0.85, 0.0, 1.0) * vFade * uOpacity;
+        vec3 base = vTint < 0.60 ? uWhite : vTint < 0.90 ? uViolet : vTint < 0.98 ? vec3(.7,.12,.5) : uWarm * 0.3;
         vec3 color = mix(base, uWarm * (1.0 + uEnergy * 0.2), step(0.84, vTint) * uOrangeMix);
         gl_FragColor = vec4(color, alpha * 0.65);
         #include <tonemapping_fragment>
@@ -83,7 +86,7 @@ export function createParticleField() {
       varying float vFade, vTint;
       void main() {
         float glow = max(0.0, 1.0 - length(gl_PointCoord - 0.5) * 2.0);
-        vec3 base = vTint < 0.70 ? uWhite : vTint < 0.95 ? uViolet : uWarm * 0.3;
+        vec3 base = vTint < 0.60 ? uWhite : vTint < 0.90 ? uViolet : vTint < 0.98 ? vec3(.7,.12,.5) : uWarm * 0.3;
         gl_FragColor = vec4(mix(base, uWarm, step(0.84, vTint) * uOrangeMix), glow * vFade * uOpacity);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -94,7 +97,8 @@ export function createParticleField() {
   const group = new THREE.Group(); group.add(streaks, points);
   return {
     group,
-    update({ cameraZ, advance, length, energy, orangeMix = 0, collapse, opacity, density }) {
+    update({ cameraZ, advance, length, energy, orangeMix = 0, collapse, opacity, density, showStreaks = true, showStars = true }) {
+      streaks.visible=showStreaks && length>.3; points.visible=showStars;
       uniforms.uCameraZ.value = cameraZ; uniforms.uAdvance.value = advance;
       uniforms.uOrangeMix.value = orangeMix; uniforms.uLength.value = length; uniforms.uEnergy.value = energy;
       uniforms.uCollapse.value = collapse; uniforms.uOpacity.value = opacity;
