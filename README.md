@@ -181,3 +181,7 @@ Only the six close heroes schedule fly-by audio. Cue planning includes camera-sp
 Debug tuning survives checkpoint changes and replay; R explicitly restores all defaults, including checkbox states. Star sizing uses the capped scene-buffer scale so high-DPI presentation does not inflate the star sprites.
 
 The refined Act II treatment uses graphite metals with a locally generated studio reflection environment, subdued violet accents, thin graph links without node rings, and solid shaded midground hardware instead of universal wireframe. The opening graph is smaller and offset for separation. Entry guide lines fade away as the universe establishes; they do not persist across the main fly-through. Curtains and final reveal are unchanged.
+
+### Tunnel experiment
+
+The pre-tunnel version is preserved on `main` at `28b2a66`. Branch `feat/cinematic-tunnel` replaces the short entry guides with an open world-space framework (`src/scene/flightTunnel.js`): interrupted elliptical ribs and six continuous rails surrounding the existing flight path. Stars remain visible through the framework. It builds with the curtain reveal, stays present during acceleration, and fades before the convergence burst. One shared geometry/material uses one draw call, with no per-frame geometry allocation; camera travel supplies parallax. Object positions, close-pass audio timing, curtains and finale remain unchanged.

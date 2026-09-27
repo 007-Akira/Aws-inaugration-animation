@@ -6,7 +6,7 @@ import { identity, voidTreatment } from '../config/identity';
 import { timing } from '../config/timing';
 import { createObjectLibrary, seededRandom } from './objects';
 import { createParticleField } from './particles';
-import { createEntryCorridor } from './entryCorridor';
+import { createFlightTunnel } from './flightTunnel';
 import { universeConfig, actTwoTiming, cameraDistance, debugDefaults, entryTravel } from '../config/actTwo';
 
 export function createUniverse(effects) {
@@ -14,7 +14,7 @@ export function createUniverse(effects) {
   let environmentTarget;
   const library = createObjectLibrary();
   const particles = createParticleField();
-  const corridor = createEntryCorridor();
+  const corridor = createFlightTunnel();
   const population = createPopulation(), stars = createStarField();
   const root = new THREE.Group(); root.name = 'computational-universe';
   scene.add(root);
@@ -164,7 +164,7 @@ export function createUniverse(effects) {
       root.visible = true;
       // Reset now renders the void; reveal hidden technology temporarily for GPU warm-up.
       objects.forEach(item => { item.mesh.visible = true; });
-      corridor.group.visible = true; // Compile both entry shaders before the inauguration click.
+      corridor.group.visible = true; // Compile the tunnel shader before the inauguration click.
       const ready = await effects.prepare();
       if (ready) effects.render(); // Upload textures and buffers before enabling the trigger.
       render(-1);
