@@ -9,7 +9,7 @@ This README describes the current implementation and provides handoff context fo
 See [REQUIREMENTS.md](REQUIREMENTS.md) for prerequisites and troubleshooting. Use **Node.js 22.12 or newer**, with npm. No API keys, `.env` file, backend, database or Python environment are required.
 
 ```sh
-git clone --branch feat/cinematic-tunnel https://github.com/007-Akira/Aws-inaugration-animation.git
+git clone --branch main https://github.com/007-Akira/Aws-inaugration-animation.git
 cd Aws-inaugration-animation
 npm ci
 npm run dev
@@ -21,7 +21,7 @@ For an existing clone, commit or stash your own work before switching branches:
 
 ```sh
 git fetch origin
-git switch feat/cinematic-tunnel
+git switch main
 git pull --ff-only
 npm ci
 ```
@@ -178,7 +178,8 @@ For implementation decisions, inspect the current source and latest user request
 
 ### Branches and restore points
 
-- `feat/cinematic-tunnel`: current development branch, including the flowing-ribbon direction.
+- `main`: current shared version, including flowing light ribbons, the weaving camera and synchronized whooshes.
+- `feat/cinematic-tunnel`: retained feature branch from the tunnel development work.
 - `28b2a66`: pushed pre-tunnel baseline, preserving the stars, refined models and rendering fixes.
 - `88c1edc`: first pushed tunnel version, with rigid segmented ribs/rails, before the light-river revision.
 
