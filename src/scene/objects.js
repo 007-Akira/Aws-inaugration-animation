@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { createObjectMaterials } from './objects/materials';
+import { createTechObject } from './objects/objectFactory';
 import { createDetailLibrary } from './details';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { identity } from '../config/identity';
@@ -14,11 +16,13 @@ export function createObjectLibrary() {
   const geometries = new Set(), materials = new Set(), textures = new Set();
   const geometry = value => { geometries.add(value); return value; };
   const material = value => { materials.add(value); return value; };
+  const heroMaterials = createObjectMaterials();
+  Object.values(heroMaterials).forEach(material);
   const dark = material(new THREE.MeshStandardMaterial({ color: 0x182a38, metalness: 0.38, roughness: 0.42 }));
   const accent = material(new THREE.LineBasicMaterial({ color: identity.violet, transparent: true, opacity: 0.85 }));
-  const white = material(new THREE.LineBasicMaterial({ color: 0xbad5e4, transparent: true, opacity: 0.72 }));
+  const white = material(new THREE.LineBasicMaterial({ color: 0xaab9c5, transparent: true, opacity: 0.36 }));
   const dim = material(new THREE.LineBasicMaterial({ color: 0x557382, transparent: true, opacity: 0.5 }));
-  const nodeMaterial = material(new THREE.MeshBasicMaterial({ color: identity.violet }));
+  const nodeMaterial = material(new THREE.MeshStandardMaterial({ color: 0xa8b7c9, metalness: .55, roughness: .3, emissive: 0x627896, emissiveIntensity: .35 }));
   const pulseMaterial = material(new THREE.MeshBasicMaterial({ color: identity.coolWhite }));
   const box = geometry(new RoundedBoxGeometry(2.4, 3.4, 1.1, 2, 0.045));
   const edgeBox = new THREE.BoxGeometry(2.4, 3.4, 1.1);
@@ -108,15 +112,23 @@ export function createObjectLibrary() {
     nearer.slice(0, 2).forEach(point => connect(i, point.index));
   }
   const networkLines = geometry(new THREE.BufferGeometry().setFromPoints(links.flatMap(([a, b]) => [networkPoints[a], networkPoints[b]])));
-  const sockets = networkPoints.map(point => {
-    const socket = new THREE.TorusGeometry(0.14, 0.018, 4, 12);
-    socket.translate(point.x, point.y, point.z); return socket;
-  });
-  const socketGeometry = geometry(mergeGeometries(sockets)); sockets.forEach(g => g.dispose());
   const details = createDetailLibrary({ geometry, material, texture: value => { textures.add(value); return value; } });
   const matrix = new THREE.Matrix4();
   function create(type, { detail = true } = {}) {
     const group = new THREE.Group(); group.name = type;
+    if (detail && ['compute','database','cloud','cube','vault','serverless','neural','code'].includes(type)) {
+      const model = createTechObject(type === 'cube' ? 'vault' : type, heroMaterials);
+      // Preserve each authored fly-by's size and path; animate only its inner model.
+      const scales = {compute:.57,database:.58,cloud:.72,cube:.58,vault:.58,serverless:.8,neural:1,code:1};
+      model.scale.setScalar(scales[type]);model.userData.update?.(0,0);
+      group.add(model);group.userData.update = time => model.userData.update?.(time);
+      model.traverse(node => {
+        if(node.geometry) geometry(node.geometry);
+        if(node.material) (Array.isArray(node.material)?node.material:[node.material]).forEach(value=>{material(value);if(value.map)textures.add(value.map);});
+      });
+      return group;
+    }
+
     if (type === 'compute') {
       group.add(new THREE.Mesh(box, dark), new THREE.LineSegments(boxEdges, accent), new THREE.Mesh(ventGeometry, dark));
       const count = detail ? 8 : 12;
@@ -155,7 +167,6 @@ export function createObjectLibrary() {
     }
     if (detail) {
       const surfaces = details.create(type);
-      if (type === 'network') surfaces.add(new THREE.Mesh(socketGeometry, pulseMaterial));
       group.add(surfaces);
     }
     return group;
