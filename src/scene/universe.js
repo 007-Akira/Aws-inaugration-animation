@@ -1,13 +1,14 @@
 import * as THREE from 'three';
+import { sampleCameraPath } from '../core/cameraPath';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { createPopulation } from './population';
 import { createStarField } from './starField';
 import { identity, voidTreatment } from '../config/identity';
 import { timing } from '../config/timing';
-import { createObjectLibrary, seededRandom } from './objects';
+import { createObjectLibrary } from './objects';
 import { createParticleField } from './particles';
 import { createFlightTunnel } from './flightTunnel';
-import { universeConfig, actTwoTiming, cameraDistance, debugDefaults, entryTravel } from '../config/actTwo';
+import { universeConfig, actTwoTiming, debugDefaults, entryTravel } from '../config/actTwo';
 
 export function createUniverse(effects) {
   const { scene, camera } = effects;
@@ -87,13 +88,21 @@ export function createUniverse(effects) {
   const defaults = { cameraSpeed: 25, particleSpeed: 0.03, streakLength: 0.05, orangeEnergyIntensity: 0.05, objectDensity: 0.2, cameraShake: 0.08, collapse: 0, emergence: 0, voidOpacity: 0.18, entryProgress: 0, orangeBlend: 0 };
   const controls = { ...defaults };
   const tuning = { ...debugDefaults };
+  const cameraPath = {}, cameraAhead = {};
   let currentTime = 0;
   function render(time = currentTime) {
     currentTime = time;
     const t = Math.max(0, Math.min(time, actTwoTiming.flyDuration));
-    const drift = controls.cameraShake * tuning.cameraDrift;
-    camera.position.set(Math.sin(t * 0.65) * drift * 0.9, Math.sin(t * 0.43) * drift * 0.55, -entryTravel * controls.entryProgress - cameraDistance(t, controls.cameraSpeed) * tuning.cameraSpeed);
-    camera.rotation.set(Math.sin(t * 0.53) * drift * 0.0015, Math.sin(t * 0.4) * drift * 0.0015, Math.sin(t * 0.55) * drift * 0.008);
+    sampleCameraPath(t, tuning, cameraPath);
+    sampleCameraPath(Math.min(t + .3, actTwoTiming.flyDuration), tuning, cameraAhead);
+    camera.position.set(cameraPath.x, cameraPath.y, -entryTravel * controls.entryProgress + cameraPath.z);
+    // Aim gently into the turn; cap bank/heading to keep projector motion calm.
+    const forward = Math.max(1, cameraPath.z - cameraAhead.z);
+    const dx = cameraAhead.x - cameraPath.x, dy = cameraAhead.y - cameraPath.y;
+    const yaw = THREE.MathUtils.clamp(-Math.atan2(dx, forward) * .65, -.065, .065);
+    const pitch = THREE.MathUtils.clamp(Math.atan2(dy, forward) * .65, -.035, .035);
+    const bank = THREE.MathUtils.clamp(-dx / forward * .18, -.018, .018);
+    camera.rotation.set(pitch, yaw, bank);
     const energy = controls.orangeEnergyIntensity * tuning.orangeEnergy * tuning.orangeEnergyIntensity;
     const convergence = controls.collapse;
     scene.fog.density = (tuning.showFog ? universeConfig.fogDensity * tuning.fogDepth * tuning.fogDensity : 0) * (1 + (1 - controls.emergence) * 2.6);

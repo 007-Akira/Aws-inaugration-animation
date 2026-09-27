@@ -1,20 +1,23 @@
-import { actTwoTiming, cameraDistance, universeConfig } from '../config/actTwo';
+import { sampleCameraPath } from './cameraPath';
+import { actTwoTiming, universeConfig } from '../config/actTwo';
 
 // Close-pass sounds follow the first approach, not the later convergence pull.
 export function createFlybyCues(tuning = {}) {
   return universeConfig.heroes.map((hero,index)=>({hero,index})).filter(({hero,index})=>
     tuning.showHeroes!==false && index<Math.ceil(universeConfig.heroes.length*(tuning.heroObjectDensity??1)) && hero[4]?.whoosh!==false && (hero[4]?.closePass===undefined || hero[4].closePass<(tuning.closePassCount??6))
   ).map(({hero:[, [x,y,z]],index}) => {
-    let closest = 0, minimum = Infinity;
+    let closest = 0, minimum = Infinity, side = x;
+    const camera = {};
     const convergenceStart = actTwoTiming.flyDuration - actTwoTiming.convergenceDuration;
     for (let i=0; i<=1650; i++) {
       const t=i*convergenceStart/1650;
-      const distance=x*x+y*y+(z+cameraDistance(t)*(tuning.cameraSpeed??1))**2;
-      if (distance<minimum) { minimum=distance; closest=t; }
+      sampleCameraPath(t, tuning, camera);
+      const distance=(x-camera.x)**2+(y-camera.y)**2+(z-camera.z)**2;
+      if (distance<minimum) { minimum=distance; closest=t; side=x-camera.x; }
     }
     const rate=.94+((index*37+11)%101)/100*.12;
     return { at:closest-.7/rate, closest, distance:Math.sqrt(minimum), rate, gain:.19+((index*19+7)%31)/1000,
-      pan:Math.sign(x)*Math.min(.75,.3+Math.abs(x)/40) };
+      pan:Math.sign(side)*Math.min(.75,.3+Math.abs(side)/40) };
   }).filter(cue=>cue.distance<20).sort((a,b)=>a.at-b.at);
 }
 
